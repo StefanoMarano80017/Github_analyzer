@@ -5,14 +5,9 @@ import DB_manager
 def main():
 
     data = datetime.date(2017, 5, 31)
-    broker = Broker.Broker('', 'prova.db')
-    broker.repos_to_db(data, 'java')
+    broker = Broker.Broker('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', 'prova.db')
 
-    db = DB_manager.DB('prova.db')
-    db.create_connection()
-
-    for row in db.do_query("Select * from project"):
-        print(row)
-
+    for repo in broker.random_select_repo(150, 4):
+        print(repo)
 if __name__ == '__main__':
     main()
