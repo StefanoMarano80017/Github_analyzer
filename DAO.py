@@ -20,20 +20,14 @@ class DAO_Repo(DAO_Astratto):
         self.db_file = db_file
         self.db = DB_manager.DB(self.db_file)
 
-    def set_data(self, item, args, query_id="prova") -> None:
+    def set_data(self, args, query_id="insert_repo") -> None:
 
         self.db.check_conn()
-
-        #query_tabella = Query_Txt.read_query(query_id, 'DB')
+        query_tabella = Query_Txt.read_query("create_repo", 'DB')
         query_set = Query_Txt.read_query(query_id, 'DB')
 
-        # Qui codice per settare parametri della query
-        # usa cur.execute("insert into test(d, ts) values (?, ?)", (today, now))
-        # lista = [nome = repo.name, id = repo.id ....e così via]
-        # eseguo query, deve essere un insert di un singolo elemento
-
         try:
-            self.db.create_table()
+            self.db.do_query(query_tabella)
             self.db.do_query(query_set, args)
         except Exception as e:
             raise e

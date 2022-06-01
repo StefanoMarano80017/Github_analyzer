@@ -1,10 +1,12 @@
 import Broker
 import datetime
+import DB_manager
 
 def main():
 
-    data = datetime.date(2019, 3, 1)
-    Broker.repos_to_db('prova.db', '', data, "java")
+    data = datetime.date(2017, 5, 31)
+    broker = Broker.Broker('', 'prova.db')
+    broker.repos_to_db(data, 'java')
 
     db = DB_manager.DB('prova.db')
     db.create_connection()
