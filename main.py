@@ -1,25 +1,12 @@
-from Broker import Query_Txt
+from Unit_elaborazione import Analisi_sorgente
 
 def main():
 
-    #data = datetime.date(2017, 5, 31)
-    #g = Github('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')
-    #repo = g.get_repo("SOM-Research/Gitana")
-    #contents = repo.get_contents("/importers/db/dbschema.py")
+    links = ['https://raw.githubusercontent.com/SOM-Research/Gitana/master/gitana/gitana.py']
+    suffixs = ['py']
+    analizer = Analisi_sorgente.analyzer('prova', links, suffixs)
 
-    #link = 'https://raw.githubusercontent.com/SOM-Research/Gitana/master/gitana/gitana.py'
-    #f = requests.get(link)
-    #print(f.text)
-    #print(contents.decoded_content)
-
-    #broker = Broker.Broker(token = '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', db_file='prova.db')
-
-    #print(broker.extract_file_repo(repo))
-
-    #prova_API.prova_loc()
-
-    txt = Query_Txt.read_query('insert_repo', 'DB')
-    print(txt)
+    analizer.analyser_files()
 
 if __name__ == '__main__':
     main()
