@@ -1,6 +1,6 @@
 import configparser
 
-file_name: str = 'prova.ini'
+file_name: str = 'Util/prova.ini'
 
 
 def read_query(query_id, section_name) -> str:

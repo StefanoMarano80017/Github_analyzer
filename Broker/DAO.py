@@ -34,7 +34,7 @@ class DAO_Repo(DAO_Astratto):
         finally:
             self.db.close_connection()
 
-    def get_data(self, query_id="select_repo", args = None):
+    def get_data(self, query_id="select_repo", args=None):
 
         self.db.check_conn()
         query_txt = Query_Txt.read_query(query_id, 'DB')
@@ -48,7 +48,10 @@ class DAO_Repo(DAO_Astratto):
                 for row in self.db.do_query(query_txt, args):
                     repos.append(row)
         except Exception as e:
-            e = "DAO exception" + e
+            print("DAO exception")
             print(e)
-
         return repos
+
+
+class DAO_link(DAO_Astratto):
+    pass

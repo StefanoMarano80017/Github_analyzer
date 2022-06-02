@@ -18,9 +18,13 @@ class QueryRepo:
         query_string = Query_Txt.read_query(query_id, 'GIT')
         return self.do_query_txt(query_string, sort, order)
 
-    def do_query_txt(self, query_txt, sort='stars', order='desc') -> list:
+    def count_query(self, query_txt, sort='stars', order='desc'):
         self.tokenutil.wait_is_usable()
         count: int = self.g.search_repositories(query_txt, sort, order).totalCount
+        return count
+
+    def do_query_txt(self, query_txt, sort='stars', order='desc') -> list:
+        count = self.count_query(query_txt)
 
         repo_list = []
         for i in range(0, round(count/100)+1):
