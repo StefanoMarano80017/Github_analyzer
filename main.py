@@ -2,7 +2,7 @@ from Broker import Query_Txt
 
 def main():
 
-    #data = datetime.date(2017, 5, 31)
+    data = datetime.date(2017, 5, 31)
     #g = Github('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')
     #repo = g.get_repo("SOM-Research/Gitana")
     #contents = repo.get_contents("/importers/db/dbschema.py")
