@@ -2,16 +2,19 @@ import requests
 
 
 class extract_code:
-    def get_page(self, link: str):
+    def __init__(self, link):
+        self.link = link
+
+    def get_page(self):
         # link = 'https://raw.githubusercontent.com/SOM-Research/Gitana/master/gitana/gitana.py'
         try:
-            return requests.get(link)
+            return requests.get(self.link)
         except Exception as e:
             print('eccezione requests')
             print(e)
 
-    def get_content(self, link: str):
-        file = self.get_page(link)
+    def get_content(self):
+        file = self.get_page()
         try:
             return file.content
         except Exception as e:

@@ -22,8 +22,8 @@ class C_Analysis:
         self.group = group
         self.summary = ProjectSummary()
 
-    def count_file(self, code, suffix: str):
-        with tempinput(code, suffix) as tmp:
+    def count_file(self, data, suffix: str):
+        with tempinput(data, suffix) as tmp:
             try:
                 c = SourceAnalysis.from_file(tmp, self.group)
                 self.summary.add(c)

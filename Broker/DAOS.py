@@ -1,8 +1,7 @@
 from abc import abstractmethod
 
-import DB_manager
-import Query_Txt
-
+from Broker import DB_manager
+from Broker import Query_Txt
 
 class DAO_Astratto:
 
@@ -57,17 +56,17 @@ class DAO_link(DAO_Astratto):
         self.db_file = db_file
         self.db = DB_manager.DB(self.db_file)
 
-    def get_data(self, query_id='select link', args=None):
+    def get_data(self, query_id='select_link', args=None)->list:
         self.db.check_conn()
         query_txt = Query_Txt.read_query(query_id, 'DB')
         links = []
         try:
             if args is None:
                 for row in self.db.do_query(query_txt):
-                    links.append(str(row))
+                    links.append(row)
             else:
                 for row in self.db.do_query(query_txt, args):
-                    links.append(str(row))
+                    links.append(row)
         except Exception as e:
             print("DAO exception")
             print(e)

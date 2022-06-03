@@ -1,8 +1,8 @@
 import datetime
 import random
 
-import DAOS
-import QueryGit
+from Broker import DAOS
+from Broker import QueryGit
 
 
 class Broker:
@@ -17,6 +17,7 @@ class Broker:
         # fork > 0 & star > 0
         # created:2017-05-31 stars:>0 forks:>0 language:Java
         query_txt = "created:" + str(date) + " stars:>0 forks:>0 language:" + lang
+        print(query_txt)
         # return list[repo]
         return self.git_repo.do_query_txt(query_txt)
 
@@ -24,10 +25,12 @@ class Broker:
         return self.git_repo.extract_file_repo(repo)
 
     def repos_to_db(self, date: datetime.date, lang: str):
+        print("----salvataggio in DB-------")
         repos = self.do_git_query_repo(date, lang)
         for repo in repos:
             # query DB salvataggio repo
-            args = (repo.id, repo.name)
+            print('salvo repo')
+            args = (repo.id, repo.full_name)
             self.dao_repo.set_data(args)
 
             # query DB salvataggio link repo
@@ -39,7 +42,8 @@ class Broker:
             print(repo)
 
     def select_repo(self, size_max):
-        size = self.dao_repo.get_data('count_repo')
+        count = self.dao_repo.get_data('count_repo')
+        size = count[0][0]
         if size > size_max:
             return self.random_select_repo(size_max)
         else:
@@ -58,3 +62,7 @@ class Broker:
     def print_table_link(self):
         for link in self.dao_links.get_data():
             print(link)
+
+    def get_link_repo(self, id_repo:str):
+        args = (id_repo, )
+        return self.dao_links.get_data('select_link_id', args)

@@ -1,8 +1,8 @@
 from github import Github
 from github import Repository
 
-import Query_Txt
-import TokenUtil
+from Broker import Query_Txt
+from Broker import TokenUtil
 
 TOKEN = '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'
 
@@ -35,12 +35,13 @@ class QueryRepo:
                 repo_list.append(repo)
         return repo_list
 
-    @staticmethod
-    def extract_file_repo(repo: Repository.Repository):
+    def extract_file_repo(self, repo: Repository.Repository):
+        self.tokenutil.wait_is_usable()
         contents = repo.get_contents("")
         list_file = []
 
         while contents:
+            self.tokenutil.wait_is_usable()
             file_content = contents.pop(0)
             if file_content.type == "dir":
                 contents.extend(repo.get_contents(file_content.path))

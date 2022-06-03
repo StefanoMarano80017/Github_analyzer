@@ -1,16 +1,21 @@
 import datetime
-
+import os
 from Broker import Broker
-
+from Unit_elaborazione import Controller
 
 def main():
-    data = datetime.date(2016, 4, 5)
-    b = Broker.Broker(token='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', db_file='prova.db')
+    b = Broker.Broker(token='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', db_file='Util/prova.db')
+    c = Controller.Controller(token='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', db_file='Util/prova.db')
 
-    b.repos_to_db(data, 'java')
+    #b.print_table_link()
 
-    b.print_table_link()
+    c.repo_cloc()
 
+    #links = b.get_link_repo('60104635')
+    #for link in links:
+     #    print(type(link[1]))
 
 if __name__ == '__main__':
     main()
+
+
