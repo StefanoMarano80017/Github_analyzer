@@ -15,5 +15,5 @@ class extract_code:
         try:
             return file.content
         except Exception as e:
-            print('errore get content file')
+            print('errore get content page')
             print(e)

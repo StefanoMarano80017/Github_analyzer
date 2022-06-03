@@ -1,4 +1,6 @@
 from github import Github
+from github import Repository
+
 import Query_Txt
 import TokenUtil
 
@@ -27,8 +29,26 @@ class QueryRepo:
         count = self.count_query(query_txt)
 
         repo_list = []
-        for i in range(0, round(count/100)+1):
+        for i in range(0, round(count / 100) + 1):
             self.tokenutil.wait_is_usable()
             for repo in self.g.search_repositories(query_txt, sort, order).get_page(i):
                 repo_list.append(repo)
         return repo_list
+
+    @staticmethod
+    def extract_file_repo(repo: Repository.Repository):
+        contents = repo.get_contents("")
+        list_file = []
+
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(repo.get_contents(file_content.path))
+            else:
+                c = file_content.name.split('.')
+                len_c = len(c)
+                # QUI TUTTE LE ESTENSIONI CHE POSSO LEGGERE
+                if c[len_c - 1] == 'py':
+                    list_file.append(file_content.download_url)
+
+        return list_file

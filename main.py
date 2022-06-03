@@ -1,13 +1,15 @@
-from Unit_elaborazione import Analisi_sorgente
-import prova_API
+import datetime
+
+from Broker import Broker
+
 
 def main():
+    data = datetime.date(2016, 4, 5)
+    b = Broker.Broker(token='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', db_file='prova.db')
 
-    links = ['https://raw.githubusercontent.com/SOM-Research/Gitana/master/gitana/gitana.py', 'https://raw.githubusercontent.com/rrwick/LinesOfCodeCounter/master/lines_of_code_counter.py']
-    suffixs = ['.py', '.py']
-    analizer = Analisi_sorgente.analyzer('prova', links, suffixs)
+    b.repos_to_db(data, 'java')
 
-    analizer.cloc_files()
+    b.print_table_link()
 
 
 if __name__ == '__main__':

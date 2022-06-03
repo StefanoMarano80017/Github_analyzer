@@ -38,7 +38,6 @@ class DAO_Repo(DAO_Astratto):
 
         self.db.check_conn()
         query_txt = Query_Txt.read_query(query_id, 'DB')
-
         repos = []
         try:
             if args is None:
@@ -54,4 +53,35 @@ class DAO_Repo(DAO_Astratto):
 
 
 class DAO_link(DAO_Astratto):
-    pass
+    def __init__(self, db_file):
+        self.db_file = db_file
+        self.db = DB_manager.DB(self.db_file)
+
+    def get_data(self, query_id='select link', args=None):
+        self.db.check_conn()
+        query_txt = Query_Txt.read_query(query_id, 'DB')
+        links = []
+        try:
+            if args is None:
+                for row in self.db.do_query(query_txt):
+                    links.append(str(row))
+            else:
+                for row in self.db.do_query(query_txt, args):
+                    links.append(str(row))
+        except Exception as e:
+            print("DAO exception")
+            print(e)
+        return links
+
+    def set_data(self, args, query_id="insert_link"):
+        self.db.check_conn()
+        query_tabella = Query_Txt.read_query("create_links", 'DB')
+        query_set = Query_Txt.read_query(query_id, 'DB')
+
+        try:
+            self.db.do_query(query_tabella)
+            self.db.do_query(query_set, args)
+        except Exception as e:
+            raise e
+        finally:
+            self.db.close_connection()

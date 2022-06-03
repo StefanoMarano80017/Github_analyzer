@@ -14,7 +14,7 @@ class DB:
             self.conn = sqlite3.connect(self.db_file)
             self.conn_alive = True
         except Exception as e:
-            print ("Errore! impossibile stabile connessione")
+            print("Errore! impossibile stabile connessione")
             self.conn_alive = False
 
     def close_connection(self):
@@ -45,9 +45,9 @@ class DB:
     def create_table(self):
         c = self.conn.cursor()
 
-        create_table_repos = "CREATE TABLE IF NOT EXISTS project("\
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"\
-            "name text NOT NULL );"
+        create_table_repos = "CREATE TABLE IF NOT EXISTS project(" \
+                             "id INTEGER PRIMARY KEY AUTOINCREMENT," \
+                             "name text NOT NULL );"
 
         create_table_user = "CREATE TABLE IF NOT EXISTS user ( " \
                             "id int(20) AUTO_INCREMENT PRIMARY KEY, " \
@@ -63,5 +63,5 @@ class DB:
                                   ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"
 
         c.execute(create_table_repos)
-        #c.execute(create_table_user)
-        #c.execute(create_table_user_alias)
+        # c.execute(create_table_user)
+        # c.execute(create_table_user_alias)
