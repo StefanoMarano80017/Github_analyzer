@@ -7,7 +7,7 @@ def main():
     suffixs = ['.py', '.py']
     analizer = Analisi_sorgente.analyzer('prova', links, suffixs)
 
-    analizer.analyser_files()
+    analizer.cloc_files()
 
 
 if __name__ == '__main__':

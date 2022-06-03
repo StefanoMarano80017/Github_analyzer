@@ -2,6 +2,19 @@ import os
 import tempfile
 from pygount import SourceAnalysis
 from pygount import ProjectSummary
+from contextlib import contextmanager
+
+
+@contextmanager
+def tempinput(data, suffix):
+    temp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+    temp.write(data)
+    temp.close()
+    try:
+        yield temp.name
+    finally:
+        os.unlink(temp.name)
+
 
 class C_Analysis:
     def __init__(self, group):
@@ -9,24 +22,17 @@ class C_Analysis:
         self.group = group
         self.summary = ProjectSummary()
 
-    def count_file(self, file, suffix: str)->list:
-        temp = tempfile.NamedTemporaryFile(suffix = suffix, delete=False)
-        temp.write(file)
-        list = []
 
-        try:
-            c = SourceAnalysis.from_file(temp.name, self.group)
-            #self.counts['code_count'] = c.code_count
-            #self.counts['doc_count'] = c.documentation_count
-            #self.counts['empty_count'] = c.empty_count
-            self.summary.add(c)
-            print(c)
+    def count_file(self, code, suffix:str):
+        with tempinput(code, suffix) as tmp:
+            try:
+                c = SourceAnalysis.from_file(tmp, self.group)
+                self.summary.add(c)
+            except Exception as e:
+                print(e)
 
-        except Exception as e:
-            print('Errore count file in cloc analize')
-            print(e)
-        finally:
-            temp.close()
-            os.unlink(temp.name)
-            return list
-
+    def get_summary(self):
+        self.counts["code_count"]  = self.summary.total_code_count
+        self.counts["doc_count"]   = self.summary.total_documentation_count
+        self.counts["empty_count"] = self.summary.total_empty_count
+        return self.counts
