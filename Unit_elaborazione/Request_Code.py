@@ -9,9 +9,15 @@ class extract_code:
         # link = 'https://raw.githubusercontent.com/SOM-Research/Gitana/master/gitana/gitana.py'
         try:
             return requests.get(self.link)
-        except Exception as e:
-            print('eccezione requests')
-            print(e)
+        except requests.exceptions.Timeout as e:
+            # Maybe set up for a retry, or continue in a retry loop
+            print(e.response.text)
+        except requests.exceptions.TooManyRedirects as e:
+            # Tell the user their URL was bad and try a different one
+            print(e.response.text)
+        except requests.exceptions.RequestException as e:
+            # catastrophic error. bail.
+            raise SystemExit(e)
 
     def get_content(self):
         file = self.get_page()

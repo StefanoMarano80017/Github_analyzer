@@ -1,5 +1,5 @@
-from Unit_elaborazione import Analisi_sorgente
 from Broker import Broker
+from Unit_elaborazione import Analisi_sorgente
 
 
 class Controller:
@@ -9,10 +9,9 @@ class Controller:
     def repo_cloc(self):
         # link dei file della repo
         repos = self.broker.select_repo(100)
-        total_lines = 0
         for repo in repos:
             links = self.broker.get_link_repo(repo[0])
-            for link in links:
-                print(link[1])
-                a = Analisi_sorgente.Analyzer(group=repo[1], link=link[1])
-                result = a.cloc_files()
+            a = Analisi_sorgente.Analyzer(group=repo[1])
+            a.cloc_files(links)
+
+        print('fine elaborazione')

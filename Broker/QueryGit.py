@@ -48,8 +48,19 @@ class QueryRepo:
             else:
                 c = file_content.name.split('.')
                 len_c = len(c)
-                # QUI TUTTE LE ESTENSIONI CHE POSSO LEGGERE
-                if c[len_c - 1] == 'py':
+                if self.extractable_files(c[len_c - 1] ):
                     list_file.append(file_content.download_url)
-
         return list_file
+
+    def extractable_files(self, str):
+        # QUI TUTTE LE ESTENSIONI CHE POSSO LEGGERE
+        #if str == 'py' or str == 'eee'
+        #in realtà la lib pygments ne legge fin troppi più di 100 linguaggi
+        #metto tutti i file da evitare poiché cnf, dati di git e così via
+
+        if ( str == 'gitignore' or str == 'md' or str == 'svg' or str == 'jpeg' or str == 'gif'
+                or str == 'doctree' or str == 'png' or str == 'cfg' or str =='txt' or str == 'ico'
+                or str == 'npmignore' or str == 'gitattributes' or str == 'eslintrc' or str ==' '):
+            return False
+        else:
+            return True

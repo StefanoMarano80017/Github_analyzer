@@ -65,4 +65,9 @@ class Broker:
 
     def get_link_repo(self, id_repo:str):
         args = (id_repo, )
-        return self.dao_links.get_data('select_link_id', args)
+        links_raw = self.dao_links.get_data('select_link_id', args)
+        links = []
+        for link_raw in links_raw:
+            links.append(link_raw[0])
+
+        return links
