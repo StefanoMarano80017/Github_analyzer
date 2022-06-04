@@ -8,6 +8,7 @@ from pygount import SourceAnalysis
 
 @contextmanager
 def tempinput(data, suffix):
+    suffix = "." + suffix
     temp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
     temp.write(data)
     temp.close()

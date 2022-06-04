@@ -10,6 +10,7 @@ def main():
     #b.print_table_link()
 
     c.repo_cloc()
+    print('fine elaborazione')
 
     #links = b.get_link_repo('60104635')
     #for link in links:

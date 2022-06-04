@@ -15,4 +15,4 @@ class Controller:
             for link in links:
                 print(link[1])
                 a = Analisi_sorgente.Analyzer(group=repo[1], link=link[1])
-                print(a.cloc_files())
+                result = a.cloc_files()

@@ -16,7 +16,7 @@ class Analyzer:
         req = Request_Code.extract_code(self.link)
         cloc = Cloc_Analize.C_Analysis(self.group)
 
-        self.cloc_file(req, cloc, str(self.link))
+        self.cloc_file(req, cloc, self.link)
 
         # return [self.summary.total_code_count, self.summary.total_documentation_count, self.summary.total_empty_count]
         return cloc.get_summary()
