@@ -2,10 +2,9 @@ import sqlite3
 
 
 class DB:
-    db_file: str
-
     def __init__(self, db_file):
         self.db_file = db_file
+        self.backup_name = None
         self.conn = None
         self.conn_alive = False
 
@@ -13,8 +12,9 @@ class DB:
         try:
             self.conn = sqlite3.connect(self.db_file)
             self.conn_alive = True
-        except Exception as e:
+        except sqlite3.Error as err:
             print("Errore! impossibile stabile connessione")
+            print(err)
             self.conn_alive = False
 
     def close_connection(self):
@@ -36,32 +36,25 @@ class DB:
                     c.execute(query)
                 else:
                     c.execute(query, lista_parametri)
-        except Exception as e:
-            print(e)
-
+        except sqlite3.Error as err:
+            print('Query %s' % query)
+            print('Ha generato errore: %s' % str(err))
         return c
 
-    # probabilmente inutile, utili solo le query
-    def create_table(self):
-        c = self.conn.cursor()
+    def backup_on_file(self, backup_name: str):
+        # existing DB
+        ram_con = self.check_conn()
+        # copy into this DB
+        back_con = sqlite3.connect(backup_name)
+        self.backup_name = backup_name
 
-        create_table_repos = "CREATE TABLE IF NOT EXISTS project(" \
-                             "id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                             "name text NOT NULL );"
-
-        create_table_user = "CREATE TABLE IF NOT EXISTS user ( " \
-                            "id int(20) AUTO_INCREMENT PRIMARY KEY, " \
-                            "name varchar(256), " \
-                            "email varchar(256), " \
-                            "CONSTRAINT namem UNIQUE (name, email) " \
-                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"
-
-        create_table_user_alias = "CREATE TABLE IF NOT EXISTS user_alias ( " \
-                                  "user_id int(20), " \
-                                  "alias_id int(20), " \
-                                  "CONSTRAINT a UNIQUE (user_id) " \
-                                  ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"
-
-        c.execute(create_table_repos)
-        # c.execute(create_table_user)
-        # c.execute(create_table_user_alias)
+        try:
+            with back_con:
+                ram_con.backup(back_con, pages=0)
+            print("backup successful")
+        except sqlite3.Error as e:
+            print("Errore di backup: ", e)
+        finally:
+            if back_con:
+                back_con.close()
+                ram_con.close()
