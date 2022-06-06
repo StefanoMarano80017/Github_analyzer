@@ -16,7 +16,6 @@ class QueryRepo:
     def do_query_ini(self, query_id, sort='stars', order='desc'):
         # sort – string (‘stars’, ‘forks’, ‘updated’)
         # order – string (‘asc’, ‘desc’)
-
         query_string = Query_Txt.read_query(query_id, 'GIT')
         return self.do_query_txt(query_string, sort, order)
 
@@ -48,19 +47,20 @@ class QueryRepo:
             else:
                 c = file_content.name.split('.')
                 len_c = len(c)
-                if self.extractable_files(c[len_c - 1] ):
+                if self.__extractable_files(c[len_c - 1]):
                     list_file.append(file_content.download_url)
         return list_file
 
-    def extractable_files(self, str):
+    @staticmethod
+    def __extractable_files(strs):
         # QUI TUTTE LE ESTENSIONI CHE POSSO LEGGERE
-        #if str == 'py' or str == 'eee'
-        #in realtà la lib pygments ne legge fin troppi più di 100 linguaggi
-        #metto tutti i file da evitare poiché cnf, dati di git e così via
+        # if str == 'py' or str == 'eee'
+        # in realtà la lib pygments legge più di 100 linguaggi
+        # metto tutti i file da evitare cnf, dati di git e così via
 
-        if ( str == 'gitignore' or str == 'md' or str == 'svg' or str == 'jpeg' or str == 'gif'
-                or str == 'doctree' or str == 'png' or str == 'cfg' or str =='txt' or str == 'ico'
-                or str == 'npmignore' or str == 'gitattributes' or str == 'eslintrc' or str ==' '):
+        if (strs == 'gitignore' or strs == 'md' or strs == 'svg' or strs == 'jpeg' or strs == 'gif'
+                or strs == 'doctree' or strs == 'png' or strs == 'cfg' or strs == 'txt' or strs == 'ico'
+                or strs == 'npmignore' or strs == 'gitattributes' or strs == 'eslintrc' or strs == ' '):
             return False
         else:
             return True

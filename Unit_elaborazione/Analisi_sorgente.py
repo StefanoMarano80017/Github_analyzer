@@ -7,7 +7,7 @@ class Analyzer:
         self.group = group
         self.cloc = Cloc_Analize.C_Analysis(group)
 
-    def cloc_files(self, links: list)->list:
+    def cloc_files(self, links: list) -> list:
         for link in links:
             self.cloc_file(link)
         # return [self.summary.total_code_count, self.summary.total_documentation_count, self.summary.total_empty_count]
