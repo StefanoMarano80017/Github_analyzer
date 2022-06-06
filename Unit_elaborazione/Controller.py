@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from Broker import Broker
 from Unit_elaborazione import Analisi_sorgente
 
@@ -11,10 +10,10 @@ class Controller:
         self.db_file = db_file
 
     def get_git_data(self, date: datetime.date, lang: str, size_max):
-        #eseguo query su git e salvo i dati sul db
+        # eseguo query su git e salvo i dati sul db
         self.broker.do_search(date, lang, size_max)
 
-    def get_repo(self)->list:
+    def get_repo(self) -> list:
         return self.broker.get_repo()
 
     def repo_cloc(self) -> list:

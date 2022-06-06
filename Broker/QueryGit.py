@@ -4,8 +4,6 @@ from github import Repository
 from Broker import Query_Txt
 from Broker import TokenUtil
 
-TOKEN = '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'
-
 
 class QueryRepo:
     def __init__(self, token):
@@ -26,7 +24,6 @@ class QueryRepo:
 
     def do_query_txt(self, query_txt, sort='stars', order='desc') -> list:
         count = self.count_query(query_txt)
-
         repo_list = []
         for i in range(0, round(count / 100) + 1):
             self.tokenutil.wait_is_usable()
