@@ -1,18 +1,22 @@
 from Unit_elaborazione import Cloc_Analize
 from Unit_elaborazione import Request_Code
 
-
+#Classe che analizza il codice sorgente di tutti i file di una singola repository
 class Analyzer:
     def __init__(self, group: str):
+        # Il parametro group identifica un insieme di file di un singola repository
         self.group = group
+        #Instanza della classe C_Analysis
         self.cloc = Cloc_Analize.C_Analysis(group)
 
+    #Metodo della classe
     def cloc_files(self, links: list) -> list:
         for link in links:
             self.cloc_file(link)
         # return [self.summary.total_code_count, self.summary.total_documentation_count, self.summary.total_empty_count]
         return self.cloc.get_summary()
 
+    #Metodo della classe che effettua
     def cloc_file(self, link: str):
         try:
             req = Request_Code.extract_code(link)
