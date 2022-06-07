@@ -8,7 +8,7 @@ from pygount import SourceAnalysis
 #Funzione che effettua la gestione di contesto
 @contextmanager
 def tempinput(data, suffix):
-    #Generazione estenzione
+    #Generazione estensione
     suffix = "." + suffix
     #Creazione file temporaneo
     temp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
@@ -25,7 +25,7 @@ def tempinput(data, suffix):
 #Questa classe ha il compito di effettuare l'analisi del codice
 class C_Analysis:
     def __init__(self, group):
-        #Il parametro gruppo identifica un insieme di file di un singola repository
+        #Il parametro group identifica un insieme di file di un singola repository
         self.group = group
         #Il parametro summary viene salvato il risultato del parser cloc
         #ProjectSummary() è un API fornita dalla libreria pygount per la gestione dei resoconti di un progetto
