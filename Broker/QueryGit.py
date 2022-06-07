@@ -9,7 +9,7 @@ class QueryRepo:
     def __init__(self, token):
         self.repos = None
         self.g = Github(token, per_page=100)
-        self.tokenutil = TokenUtil.Token(self.g)
+        self.tokenutil = TokenUtil.Token(token)
 
     def do_query_ini(self, query_id, sort='stars', order='desc'):
         # sort – string (‘stars’, ‘forks’, ‘updated’)

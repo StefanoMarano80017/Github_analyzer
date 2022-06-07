@@ -27,6 +27,7 @@ class DAO_Repo(DAO_Astratto):
         query_set = Query_Txt.read_query(query_id, 'DB')
 
         try:
+            print(args)
             self.db.do_query(query_tabella)
             self.db.do_query(query_set, args)
         finally:

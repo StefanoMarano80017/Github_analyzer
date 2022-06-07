@@ -33,7 +33,7 @@ class Broker:
         print("----salvataggio in DB-------")
         for repo in repos:
             # query DB salvataggio repo
-            args = (repo.id, repo.full_name)
+            args = (repo.id, repo.full_name, repo.stargazers_count, repo.forks_count)
             self.dao_repo.set_data(args)
 
             # query DB salvataggio link repo
