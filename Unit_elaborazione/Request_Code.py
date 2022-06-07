@@ -1,24 +1,27 @@
 import requests
 
-
+# Con questa classe vengono gestiti i download delle raw github
 class extract_code:
+    #Costruttore della classe in cui viene passato il link
     def __init__(self, link):
         self.link = link
 
+    # Il metodo che effettua il download dei link
     def get_page(self):
-        # link = 'https://raw.githubusercontent.com/SOM-Research/Gitana/master/gitana/gitana.py'
         try:
+           #Metodo della libreria requests per il download dei singolo file di una repository
             return requests.get(self.link)
         except requests.exceptions.Timeout as e:
-            # Maybe set up for a retry, or continue in a retry loop
+            # Gestione errore in caso di timeout
             print(e.response.text)
         except requests.exceptions.TooManyRedirects as e:
-            # Tell the user their URL was bad and try a different one
+            #Gestione errore in caso di troppe redirezioni delle pagine
             print(e.response.text)
         except requests.exceptions.RequestException as e:
-            # catastrophic error. bail.
+            #Gestione errore catastrofico. Uscita dal programma
             raise SystemExit(e)
 
+    #Metodo della classe per ottenere il codice del file appena scaricato
     def get_content(self):
         file = self.get_page()
         try:
