@@ -29,7 +29,7 @@ class Broker:
         repos = self.__select_repo(date, lang, size_max)
         self.__repos_to_db(repos)
 
-    def __repos_to_db(self, repos:list):
+    def __repos_to_db(self, repos: list):
         print("----salvataggio in DB-------")
         for repo in repos:
             # query DB salvataggio repo
@@ -38,7 +38,7 @@ class Broker:
 
             # query DB salvataggio link repo
             for link in self.__do_git_query_link(repo):
-                self.dao_links.set_data((None, link, repo.id))
+                self.dao_links.set_data((None, link[0], repo.id, link[1]))
 
     def __select_repo(self, date: datetime.date, lang, size_max):
         #eseguo query su git con un limite al numero di repository
@@ -61,7 +61,8 @@ class Broker:
         links_raw = self.dao_links.get_data('select_link_id', (id_repo,))
         links = []
         for link_raw in links_raw:
-            links.append(link_raw[0])
+            li = list(link_raw)
+            links.append([li[1], li[3]])
         return links
 
     def print_table_link(self):

@@ -2,6 +2,7 @@ from GUI import Window_manager
 
 from Broker import Broker
 from datetime import date
+from Unit_elaborazione import Controller
 
 def draw_figure(canvas, figure):
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
@@ -21,9 +22,17 @@ def main():
     """
 
     b = Broker.Broker('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', 'Util/prova.db')
-    date_b = date(2019, 3, 4)
-    b.do_search(date=date_b, lang = 'python', size_max=10)
-    b.print_table_repo()
+    date_b = date(2014, 3, 4)
+    #b.do_search(date=date_b, lang = 'python', size_max=10)
+
+    #b.print_table_repo()
+    #b.print_table_link()
+
+    c = Controller.Controller('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', 'Util/prova.db')
+    c.get_git_data(date_b, 'py', 3)
+    result = c.repo_cloc()
+    for res in result:
+        print(res)
 
 if __name__ == '__main__':
     main()

@@ -9,15 +9,14 @@ class Analyzer:
 
     def cloc_files(self, links: list) -> list:
         for link in links:
-            self.cloc_file(link)
+            self.cloc_file(link[0], link[1])
         # return [self.summary.total_code_count, self.summary.total_documentation_count, self.summary.total_empty_count]
         return self.cloc.get_summary()
 
-    def cloc_file(self, link: str):
+    def cloc_file(self, link: str, suffix: str):
         try:
             req = Request_Code.extract_code(link)
-            tmp = link.split('.')
-            suffix = tmp[len(tmp) - 1]
             return self.cloc.count_file(req.get_content(), suffix)
         except Exception as e:
+            print('errore cloc_file')
             print(e)

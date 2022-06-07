@@ -21,5 +21,7 @@ class Controller:
         for repo in self.broker.get_repo():
             links = self.broker.get_link_repo(repo[0])
             a = Analisi_sorgente.Analyzer(group=repo[1])
-            result_cloc.append(a.cloc_files(links))
+
+            cloc_result = a.cloc_files(links)
+            result_cloc.append([cloc_result, repo[2], repo[3]])
         return result_cloc
