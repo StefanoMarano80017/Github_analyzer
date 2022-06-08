@@ -3,6 +3,7 @@ import sys
 
 class Window_Manager:
     def __init__(self):
+        #Creazione stile pagina con relativi bottoni
         sg.theme('BluePurple')
         self.layout = [[sg.Text('Your typed chars appear here:'), sg.Text(size=(15, 1), key='-OUTPUT-')],
                       [sg.Input(key='-IN-')],
@@ -19,6 +20,7 @@ class Window_Manager:
 
     def event_loop(self):
         while True:  # Event Loop
+            #Collegamento logger alla GUI
             event, values = self.window.read()
             print(event, values, self.db_file)
 
