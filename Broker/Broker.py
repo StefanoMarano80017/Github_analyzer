@@ -66,11 +66,11 @@ class Broker:
             raise "Exception, db link vuoto"
 
     def print_table_link(self):
-        # metodo per il debug
+        #metodo per il debug
         for link in self.dao_links.get_data():
             print(link)
 
     def print_table_repo(self):
-        # metodo per il debug
+        #metodo per il debugg
         for repo in self.dao_repo.get_data():
             print(repo)

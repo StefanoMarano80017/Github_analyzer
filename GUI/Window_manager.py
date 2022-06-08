@@ -5,6 +5,7 @@ cprint = sg.cprint
 
 class Window_Manager:
     def __init__(self):
+        #Creazione stile pagina con relativi bottoni
         sg.theme('BluePurple')
         self.layout = [[sg.Text('Github Rest analyser'), sg.Text(size=(15, 2), key='-LINE1-')],
                       [sg.Multiline(size=(82,20), auto_refresh=True, reroute_stdout=True, reroute_cprint=True, write_only=True, key='-OUT-')],
@@ -26,6 +27,7 @@ class Window_Manager:
 
     def event_loop(self):
         while True:  # Event Loop
+            #Collegamento logger alla GUI
             event, values = self.window.read()
             self.window.refresh()
 
