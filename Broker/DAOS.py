@@ -27,11 +27,10 @@ class DAO_Repo(DAO_Astratto):
         query_set = Query_Txt.read_query(query_id, 'DB')
 
         try:
-            print(args)
             self.db.do_query(query_tabella)
             self.db.do_query(query_set, args)
         except Exception as e:
-            print(e)
+            print('Errore salvataggio dati: ' + str(e))
         finally:
             self.db.close_connection()
 
@@ -61,13 +60,16 @@ class DAO_link(DAO_Astratto):
         self.db.check_conn()
         query_txt = Query_Txt.read_query(query_id, 'DB')
         links = []
-        if args is None:
-            for row in self.db.do_query(query_txt):
-                links.append(row)
-        else:
-            for row in self.db.do_query(query_txt, args):
-                links.append(row)
-        return links
+        try:
+            if args is None:
+                for row in self.db.do_query(query_txt):
+                    links.append(row)
+            else:
+                for row in self.db.do_query(query_txt, args):
+                    links.append(row)
+            return links
+        except Exception as e:
+            print('Errore in lettura: ' + str(e))
 
     def set_data(self, args, query_id="insert_link"):
         self.db.check_conn()
@@ -77,5 +79,7 @@ class DAO_link(DAO_Astratto):
         try:
             self.db.do_query(query_tabella)
             self.db.do_query(query_set, args)
+        except Exception as e:
+            print('Errore in scrittura: ' + str(e))
         finally:
             self.db.close_connection()
