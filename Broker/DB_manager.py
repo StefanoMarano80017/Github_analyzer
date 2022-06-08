@@ -1,6 +1,6 @@
 import sqlite3
 
-
+#Questa classe ha il compito di gestire il db
 class DB:
     def __init__(self, db_file):
         self.db_file = db_file
@@ -8,6 +8,7 @@ class DB:
         self.conn = None
         self.conn_alive = False
 
+    #Viene creata la connessione
     def create_connection(self):
         try:
             self.conn = sqlite3.connect(self.db_file)
@@ -17,16 +18,19 @@ class DB:
             print(err)
             self.conn_alive = False
 
+    #Viene Chiusa la connessione
     def close_connection(self):
         self.conn_alive = False
         self.conn.close()
 
+    #Controllo stato Connessione
     def check_conn(self):
         if not self.conn_alive:
             return self.create_connection()
         else:
             return self.conn
 
+    #Esecuzione query sul db con o senza parametri
     def do_query(self, query: str, lista_parametri=None):
         c = None
         try:
@@ -41,6 +45,7 @@ class DB:
             print('Ha generato errore: %s' % str(err))
         return c
 
+    #Viene generata una copia in locale nel caso l'utente voglia salvare il db
     def backup_on_file(self, backup_name: str):
         # existing DB
         ram_con = self.check_conn()

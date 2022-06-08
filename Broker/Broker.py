@@ -24,6 +24,7 @@ class Broker:
     def __do_git_query_link(self, repo) -> list:
         return self.git_repo.extract_file_repo(repo)
 
+    #Effettua la ricerca su Github
     def do_search(self, date: datetime.date, lang, size_max):
 
         repos = self.__select_repo(date, lang, size_max)
@@ -50,6 +51,7 @@ class Broker:
         else:
             return repos
 
+    #Effettua la get di una repository
     def get_repo(self):
         repos = self.dao_repo.get_data()
         if len(repos) is not None:
@@ -57,6 +59,7 @@ class Broker:
         else:
             raise "Exception, db vuoto !"
 
+    #Con questo metodo si ottiene il link e l'estensione del file di una repository
     def get_link_repo(self, id_repo: str):
         links_raw = self.dao_links.get_data('select_link_id', (id_repo,))
         links = []
@@ -71,6 +74,6 @@ class Broker:
             print(link)
 
     def print_table_repo(self):
-        #metodo per il debugg
+        #metodo per il debug
         for repo in self.dao_repo.get_data():
             print(repo)
