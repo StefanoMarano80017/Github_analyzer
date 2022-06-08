@@ -9,11 +9,12 @@ class Controller:
         self.token = token
         self.db_file = db_file
 
-    def get_git_data(self, date: datetime.date, lang: str, size_max):
+    def get_git_data(self, query_string: str, size_max):
         # eseguo query su git e salvo i dati sul db
-        self.broker.do_search(date, lang, size_max)
+        self.broker.do_search(query_string, size_max)
 
     def get_repo(self) -> list:
+        #ottengo i dati dal db
         return self.broker.get_repo()
 
     def repo_cloc(self) -> list:
@@ -25,3 +26,17 @@ class Controller:
             cloc_result = a.cloc_files(links)
             result_cloc.append([cloc_result, repo[2], repo[3]])
         return result_cloc
+
+    def cloc_density_graph(self):
+        list_raw = self.repo_cloc()
+        list = []
+        for li in list_raw:
+            try:
+                total_lines = li[0][0]+ li[0][1] + li[0][2]
+                density = (li[0][1]/total_lines)*100
+            except ZeroDivisionError:
+                density = 0
+            finally:
+                li_f = [density, li[1], li[2]]
+                list.append(li_f)
+        return list

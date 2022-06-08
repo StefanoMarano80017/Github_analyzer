@@ -37,8 +37,7 @@ class DB:
                 else:
                     c.execute(query, lista_parametri)
         except sqlite3.Error as err:
-            print('Query %s' % query)
-            print('Ha generato errore: %s' % str(err))
+            raise err
         return c
 
     def backup_on_file(self, backup_name: str):

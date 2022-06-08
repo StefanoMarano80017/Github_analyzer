@@ -30,6 +30,8 @@ class DAO_Repo(DAO_Astratto):
             print(args)
             self.db.do_query(query_tabella)
             self.db.do_query(query_set, args)
+        except Exception as e:
+            print(e)
         finally:
             self.db.close_connection()
 
@@ -38,14 +40,17 @@ class DAO_Repo(DAO_Astratto):
         self.db.check_conn()
         query_txt = Query_Txt.read_query(query_id, 'DB')
         repos = []
-        if args is None:
-            for row in self.db.do_query(query_txt):
-                repos.append(row)
-        else:
-            for row in self.db.do_query(query_txt, args):
-                repos.append(row)
-        return repos
-
+        try:
+            if args is None:
+                for row in self.db.do_query(query_txt):
+                    repos.append(row)
+            else:
+                for row in self.db.do_query(query_txt, args):
+                    repos.append(row)
+            return repos
+        except Exception as e:
+            print('Errore in lettura: ' + str(e))
+            return None
 
 class DAO_link(DAO_Astratto):
     def __init__(self, db_file):
