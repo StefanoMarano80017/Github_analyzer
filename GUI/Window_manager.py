@@ -11,48 +11,45 @@ class Window_Manager:
                       [sg.Text('Inserisci un Token Github per eseguire'), sg.Text(size=(15, 1), key='-LINE2-')],
                       [sg.Input(key='-TOKEN-', size=(85, 1))],
                       [sg.Text('Scrivi la tua query o carica un db compatibile'), sg.Text(size=(15, 1), key='-LINE3-')],
-                      [sg.Input(key='-IN-', size=(60,1)), sg.FileBrowse('Load Data'), sg.Button('Search Data')],
+                      [sg.Input(key='-IN-', size=(60,1)), sg.Button('Add Data')],
                       [sg.Text('Elaborazioni'), sg.Text(size=(15, 1), key='-LINE4-')],
-                      [sg.Button('Save Data'),sg.Button('Exit')]]
+                      [sg.FileBrowse('Load Data', file_types=(("File DB", "*.db"),)), sg.Button('Repos'),sg.Button('Exit')]]
 
         self.titolo = 'prova GUI'
         self.window = sg.Window(self.titolo, self.layout)
-        self.db_file= ':memory:' #di default carico i dati in RAM
+        self.db_file= 'Util/db_prova.db' #di default carico i dati in RAM
         self.query = None
         self.token = None
-        self.repos = []
-        self.links = []
         self.controller = None
+        self.query = None
+        self.repos = []
 
     def event_loop(self):
         while True:  # Event Loop
             event, values = self.window.read()
-            print(event, values)
+            self.window.refresh()
 
-            if values['-TOKEN-'] != '':
+            if values['-TOKEN-']:
                 self.token = values['-TOKEN-']
-            if event in (sg.WIN_CLOSED, 'Exit'):
-                break
-            if event == 'Search Data':
-                self.__load_data(values)
+            if values['-IN-']:
+                self.query = values['-IN-']
+            if values['Load Data']:
+                self.db_file = values['Load Data']
 
-        self.window.close()
-
-
-    def __load_data(self, values):
-        #Controllo validità della query o del path e ritorno true
-
-        if values['-IN-'] == values['Load Data']:
             self.controller = Controller.Controller(self.token, self.db_file)
-            print('----Analizzo le repo nel File')
-            self.repos = self.controller.get_repo()
-            if self.repos is not None:
+            if event == 'Add Data':
+                if self.query is not None and self.token is not None:
+                    print("Eseguo query git, attendere")
+                    self.window.perform_long_operation(lambda: self.controller.get_git_data(self.query, 3), '-END KEY-')
+            elif event == 'Repos':
+                self.window['-OUT-'].Update('')
+                self.repos = self.controller.get_repo()
                 for repo in self.repos:
                     print(repo)
 
-        elif self.token is None:
-            cprint('INSERISCE UN TOKEN PER ESEGUIRE UNA QUERY', text_color='red')
-        else:
-            print('inserita query')
+            if event == '-END KEY-':
+                    print('Inserimento dati nel db terminato')
 
+            if event in (sg.WIN_CLOSED, 'Exit'):
+                self.window.close()
 

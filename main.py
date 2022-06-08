@@ -1,4 +1,5 @@
 from GUI import Window_manager
+from Unit_elaborazione import Controller
 
 def main():
     """
@@ -12,6 +13,11 @@ def main():
 
     w = Window_manager.Window_Manager()
     w.event_loop()
+
+    #c = Controller.Controller('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 ', 'Util/prova.db')
+    #c.get_git_data('created:2017-05-31 language:Python', 10)
+    #c.print_repo()
+
 
 if __name__ == '__main__':
     main()

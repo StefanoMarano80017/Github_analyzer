@@ -1,4 +1,3 @@
-import datetime
 import random
 
 from Broker import DAOS
@@ -16,7 +15,7 @@ class Broker:
     def __do_git_query_repo(self, query_string: str):
         # fork > 0 & star > 0
         # created:2017-05-31 stars:>0 forks:>0 language:Java
-        query_txt = query_string + "stars:>0 forks:>0"
+        query_txt = query_string + " stars:>0 forks:>0"
         print(query_txt)
         # return list[repo]
         return self.git_repo.do_query_txt(query_txt)
@@ -24,8 +23,8 @@ class Broker:
     def __do_git_query_link(self, repo) -> list:
         return self.git_repo.extract_file_repo(repo)
 
-    def do_search(self,query_string:str, size_max):
-        #eseguo una query su git e poi salvo su db
+    def do_search(self, query_string: str, size_max):
+        # eseguo una query su git e poi salvo su db
         repos = self.__select_repo(query_string, size_max)
         self.__repos_to_db(repos)
 
@@ -41,7 +40,7 @@ class Broker:
                 self.dao_links.set_data((None, link[0], repo.id, link[1]))
 
     def __select_repo(self, query_string: str, size_max):
-        #eseguo query su git con un limite al numero di repository
+        # eseguo query su git con un limite al numero di repository
         print("--------------------Query git in corso----------------------------")
         repos = self.__do_git_query_repo(query_string)
 
@@ -66,13 +65,12 @@ class Broker:
         else:
             raise "Exception, db link vuoto"
 
-
     def print_table_link(self):
-        #metodo per il debug
+        # metodo per il debug
         for link in self.dao_links.get_data():
             print(link)
 
     def print_table_repo(self):
-        #metodo per il debug
+        # metodo per il debug
         for repo in self.dao_repo.get_data():
             print(repo)

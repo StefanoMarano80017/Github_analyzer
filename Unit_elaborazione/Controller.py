@@ -17,6 +17,10 @@ class Controller:
         #ottengo i dati dal db
         return self.broker.get_repo()
 
+    def print_repo(self):
+        self.broker.print_table_repo()
+
+
     def repo_cloc(self) -> list:
         result_cloc = []
         for repo in self.broker.get_repo():
