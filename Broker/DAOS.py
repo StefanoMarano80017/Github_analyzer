@@ -3,7 +3,8 @@ from abc import abstractmethod
 from Broker import DB_manager
 from Broker import Query_Txt
 
-#Viene generata una classe astratta per facilitare la costruzioni di più operazioni CRUD diverse
+
+# Viene generata una classe astratta per facilitare la costruzioni di più operazioni CRUD diverse
 class DAO_Astratto:
 
     @abstractmethod
@@ -14,13 +15,14 @@ class DAO_Astratto:
     def get_data(self, query_id):
         pass
 
-#Questa è la classe DAO e si occupa di gestire le operazioni CRUD sul db
+
+# Questa è la classe DAO e si occupa di gestire le operazioni CRUD sul db
 class DAO_Repo(DAO_Astratto):
     def __init__(self, db_file):
         self.db_file = db_file
         self.db = DB_manager.DB(self.db_file)
 
-    #Con questo metodo viene implementato il create repo, ovvero, l'insert repo
+    # Con questo metodo viene implementato il create repo, ovvero, l'insert repo
     def set_data(self, args, query_id="insert_repo") -> None:
 
         self.db.check_conn()
@@ -52,6 +54,7 @@ class DAO_Repo(DAO_Astratto):
         except Exception as e:
             print('Errore in lettura: ' + str(e))
             return None
+
 
 class DAO_link(DAO_Astratto):
     def __init__(self, db_file):

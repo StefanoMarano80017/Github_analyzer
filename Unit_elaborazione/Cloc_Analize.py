@@ -5,7 +5,8 @@ from contextlib import contextmanager
 from pygount import ProjectSummary
 from pygount import SourceAnalysis
 
-#Funzione che effettua la gestione di contesto per i file temporanei
+
+# Funzione che effettua la gestione di contesto per i file temporanei
 @contextmanager
 def tempinput(data, suffix):
     suffix = "." + suffix
@@ -15,10 +16,11 @@ def tempinput(data, suffix):
     try:
         yield temp.name
     finally:
-        #Con questa chiamata il sistema operativo dealloca il file dal filesystem
+        # Con questa chiamata il sistema operativo dealloca il file dal filesystem
         os.unlink(temp.name)
 
-#Questa classe ha il compito di effettuare l'analisi del codice
+
+# Questa classe ha il compito di effettuare l'analisi del codice
 class C_Analysis:
     def __init__(self, group):
         """
@@ -37,8 +39,10 @@ class C_Analysis:
                 """
                 c = SourceAnalysis.from_file(tmp, self.group)
                 self.summary.add(c)
+                #print(c)
+                #qui logger
             except Exception as e:
-                print(e)
+                raise e
 
     def get_summary(self) -> list:
         return [self.summary.total_code_count, self.summary.total_documentation_count, self.summary.total_empty_count]

@@ -2,7 +2,8 @@ import configparser
 
 file_name: str = 'Util/prova.ini'
 
-#Questa funzione ha lo scopo di rendere leggibili al db
+
+# Questa funzione ha lo scopo di rendere leggibili al db
 # le operazioni di insert e di select scritte nel file prova.ini
 def read_query(query_id, section_name) -> str:
     """
