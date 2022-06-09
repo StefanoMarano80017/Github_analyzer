@@ -13,22 +13,19 @@ def main():
     gui.event_loop()
     """
 
-    #w = Window_manager.Window_Manager()
-    #w.event_loop()
+    w = Window_manager.Window_Manager()
+    w.event_loop()
 
-    c = Controller.Controller('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 ', 'Util/db_prova.db')
+    #c = Controller.Controller('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 ', 'Util/db_prova.db')
     # c.get_git_data('created:2017-05-31 language:Python', 10)
     #c.print_repo()
-    cloc_calc = c.repo_cloc()
-    for cloc in cloc_calc:
-        print(cloc)
+    #cloc_calc = c.repo_cloc()
+    #for cloc in cloc_calc:
+     #   print(cloc)
 
     #for link in c.get_link(92966807):
      #   print(link)
 
-    #logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
-    #logging.info('INFO')
-    #logging.warning('WARNING')
 
 
 if __name__ == '__main__':

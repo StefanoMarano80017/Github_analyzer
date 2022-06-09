@@ -5,12 +5,13 @@ from Broker import QueryGit
 
 
 class Broker:
-    def __init__(self, token: str, db_file: str):
+    def __init__(self, token: str, db_file: str, logger):
         self.token = token
         self.db_file = db_file
         self.git_repo = QueryGit.QueryRepo(token)
         self.dao_repo = DAOS.DAO_Repo(db_file)
         self.dao_links = DAOS.DAO_link(db_file)
+        self.log = logger
 
     def __do_git_query_repo(self, query_string: str):
         # fork > 0 & star > 0
@@ -29,7 +30,7 @@ class Broker:
         self.__repos_to_db(repos)
 
     def __repos_to_db(self, repos: list):
-        print("----salvataggio in DB-------")
+        self.log.write("-----------------------------------SALVATAGGIO IN DB-------------------------------------------", "f+g")
         for repo in repos:
             # query DB salvataggio repo
             args = (repo.id, repo.full_name, repo.stargazers_count, repo.forks_count)
@@ -41,7 +42,7 @@ class Broker:
 
     def __select_repo(self, query_string: str, size_max):
         # eseguo query su git con un limite al numero di repository
-        print("--------------------Query git in corso----------------------------")
+        self.log.write("-----------------------------------------------Query git in corso-------------------------------", 'f+g')
         repos = self.__do_git_query_repo(query_string)
 
         if len(repos) > size_max:
@@ -73,4 +74,5 @@ class Broker:
     def print_table_repo(self):
         # metodo per il debugg
         for repo in self.dao_repo.get_data():
-            print(repo)
+            string = "ID: " + str(repo[0]) + " Full Name: " + str(repo[1]) + " Stars: " + str(repo[2]) + " Forks: " + str(repo[3])
+            self.log.write(string, 'f+g')

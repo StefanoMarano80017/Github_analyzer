@@ -4,10 +4,11 @@ from Unit_elaborazione import Analisi_sorgente
 
 # La classe controller ha il compito di coordinare le funzioni di analisi sui repository
 class Controller:
-    def __init__(self, token, db_file):
-        self.broker = Broker.Broker(token, db_file)
+    def __init__(self, token, db_file, logger):
+        self.broker = Broker.Broker(token, db_file, logger)
         self.token = token
         self.db_file = db_file
+        self.log = logger
 
     def get_git_data(self, query_string: str, size_max):
         # eseguo query su git e salvo i dati sul db
@@ -31,8 +32,7 @@ class Controller:
             a = Analisi_sorgente.Analyzer(group=repo[1])
             # Viene effettuata l'analisi della repository e aggiunta alla lista
             cloc_result = a.cloc_files(links)
-            #print('print repo_cloc: ')
-            #print(cloc_result)
+            self.log.write(cloc_result, 'f+g')
             result_cloc.append([cloc_result, repo[2], repo[3]])
             print(result_cloc)
         return result_cloc
