@@ -1,5 +1,6 @@
-import sqlite3
 import os
+import sqlite3
+
 
 # Questa classe ha il compito di gestire il db
 class DB:

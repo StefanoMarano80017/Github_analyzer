@@ -1,12 +1,38 @@
 import PySimpleGUI as sg
+
 from Unit_elaborazione import Controller
 from Util import logger
 
 cprint = sg.cprint
 
-        #  tasto creare file
-        #  query su 'RAM'
+SIZE_SEARCH = 3
 
+#  tasto creare file
+#  query su 'RAM'
+
+
+def finestra_salva():
+    layout = [[sg.Input(key='-IN-'), sg.Button('Submit')]]
+    win_salva = sg.Window('Inserisci il nome del file', layout, finalize=True)
+    event_salva, values_salva = win_salva.read()
+
+    backup = None
+
+    if values_salva['-IN-']:
+        backup = values_salva['-IN-']
+
+    if event_salva == 'Submit':
+        if backup.find(".db") != -1:
+            win_salva.close()
+            return backup
+        else:
+            win_salva.close()
+            print('[ERRORE] IL FILE DEVE AVERE ESTENSIONE .db')
+            return None
+
+    if event_salva == sg.WIN_CLOSED:
+        win_salva.close()
+        return None
 
 class Window_Manager:
     def __init__(self):
@@ -21,7 +47,8 @@ class Window_Manager:
                         sg.Text(size=(15, 1), key='-LINE3-')],
                        [sg.Input(key='-IN-', size=(60, 1))],
                        [sg.Text('Operazioni dati')],
-                       [sg.Button('Do Query'), sg.FileBrowse('Load Data', file_types=(("File DB", "*.db"),)), sg.Button('Salva Dati')],
+                       [sg.Button('Do Query'), sg.FileBrowse('Load Data', file_types=(("File DB", "*.db"),)),
+                        sg.Button('Salva Dati')],
                        [sg.Text('Elaborazioni'), sg.Text(size=(15, 1), key='-LINE4-')],
                        [sg.Button('Repos'), sg.Button('Cloc'), sg.Button('Exit')]]
 
@@ -49,18 +76,24 @@ class Window_Manager:
                 self.repos = None
 
             self.controller = Controller.Controller(self.token, self.db_file, self.log)
+
             if event == 'Salva Dati':
+                self.repos = self.controller.get_repo()
                 if self.repos is not None:
-                    self.controller.backup('nuovo.db')
-                    self.db_file = 'NUOVA db'
-                    self.controller = Controller.Controller(self.token, self.db_file, self.log)
+                    backup_file = finestra_salva()
+                    if backup_file is not None:
+                            self.controller.backup(backup_file)
+                            self.db_file = backup_file
+                            self.controller = Controller.Controller(self.token, self.db_file, self.log)
                 else:
                     self.log.write('[ERRORE] NESSUN DATO DA SALVARE', 'g')
 
             if event == 'Do Query':
                 if self.query is not None and self.token is not None:
-                    self.log.write('---------------------------------------------ESEGUO QUERY GIT--------------------------', 'f+g')
-                    self.window.perform_long_operation(lambda: self.controller.get_git_data(self.query, 3), '-END KEY-')
+                    self.log.write(
+                        '---------------------------------------------ESEGUO QUERY GIT--------------------------',
+                        'f+g')
+                    self.window.perform_long_operation(lambda: self.controller.get_git_data(self.query, SIZE_SEARCH), '-END KEY-')
                     self.repos = self.controller.get_repo()
                 if self.token is None:
                     self.log.write('[ERRORE] MANCA IL TOKEN', 'g')
@@ -68,8 +101,10 @@ class Window_Manager:
                     self.log.write('[ERRORE] MANCA LA QUERY', 'g')
 
             if event == 'Cloc':
-                #if self.repos is not None:
-                self.log.write('------------------------------------------CALCOLO CLOC---------------------------------------', 'f+g')
+                # if self.repos is not None:
+                self.log.write(
+                    '------------------------------------------CALCOLO CLOC---------------------------------------',
+                    'f+g')
                 self.window.perform_long_operation(lambda: self.controller.repo_cloc(), '-CLOC KEY-')
 
             if event == 'CLOC KEY':
@@ -78,7 +113,8 @@ class Window_Manager:
 
             if event == 'Repos':
                 self.window['-OUT-'].Update('')
-                self.log.write('--------------------------------------REPOS---------------------------------------------', 'f+g')
+                self.log.write(
+                    '--------------------------------------REPOS---------------------------------------------', 'f+g')
                 self.repos = self.controller.print_repo()
 
             if event == '-END KEY-':
@@ -86,9 +122,10 @@ class Window_Manager:
 
             if event in (sg.WIN_CLOSED, 'Exit'):
                 # DA METTERE ALLA FINE DEL PROGETTO
-                #if self.db_file == 'Util/db_prova.db':
-                    #self.controller.close()
+                # if self.db_file == 'Util/db_prova.db':
+                # self.controller.close()
 
-                self.log.write('--------------------------------------FINE SESSIONE---------------------------------------------', 'f+g')
+                self.log.write(
+                    '--------------------------------------FINE SESSIONE---------------------------------------------',
+                    'f+g')
                 self.window.close()
-

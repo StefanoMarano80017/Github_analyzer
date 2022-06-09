@@ -15,6 +15,7 @@ class DAO_Astratto:
     def get_data(self, query_id):
         pass
 
+
 # Questa è la classe DAO e si occupa di gestire le operazioni CRUD sul db
 class DAO_Repo(DAO_Astratto):
     def __init__(self, db_file):

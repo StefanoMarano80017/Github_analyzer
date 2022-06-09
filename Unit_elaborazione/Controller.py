@@ -45,7 +45,7 @@ class Controller:
             cloc_result = a.cloc_files(links)
             self.log.write(cloc_result, 'f+g')
             result_cloc.append([cloc_result, repo[2], repo[3]])
-            #print(result_cloc)
+            # print(result_cloc)
         self.broker = None
         return result_cloc
 
