@@ -1,7 +1,7 @@
 from GUI import Window_manager
 from Unit_elaborazione import Controller
 import logging
-
+import os
 
 def main():
     """

@@ -2,7 +2,7 @@ import random
 
 from Broker import DAOS
 from Broker import QueryGit
-
+from Broker import DB_manager
 
 class Broker:
     def __init__(self, token: str, db_file: str, logger):
@@ -17,7 +17,7 @@ class Broker:
         # fork > 0 & star > 0
         # created:2017-05-31 stars:>0 forks:>0 language:Java
         query_txt = query_string + " stars:>0 forks:>0"
-        print(query_txt)
+        self.log.write("Query: " + query_txt, 'f+g')
         # return list[repo]
         return self.git_repo.do_query_txt(query_txt)
 
@@ -25,12 +25,13 @@ class Broker:
         return self.git_repo.extract_file_repo(repo)
 
     def do_search(self, query_string: str, size_max):
-        # eseguo una query su git e poi salvo su db
+        # eseguo una query su git
         repos = self.__select_repo(query_string, size_max)
-        self.__repos_to_db(repos)
+        if repos is not None:
+            self.__repos_to_db(repos)
 
     def __repos_to_db(self, repos: list):
-        self.log.write("-----------------------------------SALVATAGGIO IN DB-------------------------------------------", "f+g")
+        self.log.write("-----------------------------------SALVATAGGIO IN DB IN CORSO-------------------------------------------", "f+g")
         for repo in repos:
             # query DB salvataggio repo
             args = (repo.id, repo.full_name, repo.stargazers_count, repo.forks_count)
@@ -39,10 +40,11 @@ class Broker:
             # query DB salvataggio link repo
             for link in self.__do_git_query_link(repo):
                 self.dao_links.set_data((None, link[0], repo.id, link[1]))
+        self.log.write("-----------------------------------SALVATAGGIO IN DB TERMINATO-------------------------------------------", "f+g")
+
 
     def __select_repo(self, query_string: str, size_max):
         # eseguo query su git con un limite al numero di repository
-        self.log.write("-----------------------------------------------Query git in corso-------------------------------", 'f+g')
         repos = self.__do_git_query_repo(query_string)
 
         if len(repos) > size_max:
@@ -73,6 +75,17 @@ class Broker:
 
     def print_table_repo(self):
         # metodo per il debugg
-        for repo in self.dao_repo.get_data():
-            string = "ID: " + str(repo[0]) + " Full Name: " + str(repo[1]) + " Stars: " + str(repo[2]) + " Forks: " + str(repo[3])
-            self.log.write(string, 'f+g')
+        if self.dao_repo.get_data() is not None:
+            for repo in self.dao_repo.get_data():
+                string = "ID: " + str(repo[0]) + " Full Name: " + str(repo[1]) + " Stars: " + str(repo[2]) + " Forks: " + str(repo[3])
+                self.log.write(string, 'f+g')
+        else:
+            self.log.write('[ERRORE] NESSUN DATO DA VISUALIZZARE', 'g')
+
+    def delete_db(self):
+        db = DB_manager.DB(self.db_file)
+        db.delete_db()
+
+    def backup(self, backup_file):
+        db = DB_manager.DB(self.db_file)
+        db.backup_on_file(backup_file)

@@ -1,5 +1,5 @@
 import sqlite3
-
+import os
 
 # Questa classe ha il compito di gestire il db
 class DB:
@@ -63,3 +63,6 @@ class DB:
             if back_con:
                 back_con.close()
                 ram_con.close()
+
+    def delete_db(self):
+        os.remove(self.db_file)
