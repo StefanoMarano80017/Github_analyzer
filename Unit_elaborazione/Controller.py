@@ -50,8 +50,7 @@ class Controller:
         self.broker = None
         return result_cloc
 
-    def cloc_density_graph(self):
-        list_raw = self.repo_cloc()
+    def cloc_density_graph(self, list_raw):
         li_r = []
         for li in list_raw:
             try:
@@ -60,8 +59,10 @@ class Controller:
             except ZeroDivisionError:
                 density = 0
             finally:
-                li_f = [density, li[1], li[2]]
-                li_r.append(li_f)
+                density = round(density, 2)
+                li_r.append(density)
+                string = "[DENSITY CLOC] Density: {dens:^4} Stars: {stars:<6} forks: {forks:<6}".format(dens=density, stars=li[1], forks=li[2])
+                self.log.write(string, 'f+g')
         return li_r
 
     def close(self):

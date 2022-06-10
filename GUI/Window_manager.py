@@ -1,4 +1,6 @@
 import PySimpleGUI as sg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib
 
 from Unit_elaborazione import Controller
 from Util import logger
@@ -18,10 +20,8 @@ def finestra_salva():
 
     backup = None
 
-    if values_salva['-IN-']:
-        backup = values_salva['-IN-']
-
     if event_salva == 'Submit':
+        backup = values_salva['-IN-']
         if backup.find(".db") != -1:
             win_salva.close()
             return backup
@@ -30,27 +30,48 @@ def finestra_salva():
             print('[ERRORE] IL FILE DEVE AVERE ESTENSIONE .db')
             return None
 
-    if event_salva == sg.WIN_CLOSED:
-        win_salva.close()
-        return None
+    win_salva.close()
+    return None
+
+
+def finestra_grafico(x, y, title='Grafico', descrizione='Descrizione Grafico'):
+    layout =[[sg.Text(descrizione)],
+               [sg.Canvas(key="-CANVAS-")],]
+
+    win_graph = sg.Window(title, layout, finalize=True, resizable=True, element_justification="right")
+
+    fig = matplotlib.figure.Figure(figsize=(5, 4), dpi=100)
+    fig.add_subplot(111).plot(x, y, 'o')
+
+    matplotlib.use("TkAgg")
+    draw_figure(win_graph['-CANVAS-'].TKCanvas, fig)
+
+    return win_graph
+
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
 
 class Window_Manager:
     def __init__(self):
-        # Creazione stile pagina con relativi bottoni
         sg.theme('LightGrey1')
         self.layout = [[sg.Text('Github Rest analyser'), sg.Text(size=(15, 2), key='-LINE1-')],
-                       [sg.Multiline(size=(90, 20), auto_refresh=True, reroute_stdout=True, reroute_cprint=True,
-                                     write_only=True, key='-OUT-')],
-                       [sg.Text('Inserisci un Token Github per eseguire'), sg.Text(size=(20, 1), key='-LINE2-')],
-                       [sg.Input(key='-TOKEN-', size=(90, 1))],
-                       [sg.Text('Scrivi la tua query o carica un db compatibile'),
+                        [sg.Multiline(size=(90, 20), auto_refresh=True, reroute_stdout=True, reroute_cprint=True,
+                        write_only=True, key='-OUT-')],
+                        [sg.Text('Inserisci un Token Github per eseguire'), sg.Text(size=(20, 1), key='-LINE2-')],
+                        [sg.Input(key='-TOKEN-', size=(90, 1))],
+                        [sg.Text('Scrivi la tua query o carica un db compatibile'),
                         sg.Text(size=(20, 1), key='-LINE3-')],
-                       [sg.Input(key='-IN-', size=(90, 1))],
-                       [sg.Text('Operazioni dati')],
-                       [sg.Button('Do Query'), sg.FileBrowse('Load Data', file_types=(("File DB", "*.db"),)),
+                        [sg.Input(key='-IN-', size=(90, 1))],
+                        [sg.Text('Operazioni dati')],
+                        [sg.Button('Do Query'), sg.FileBrowse('Load Data', file_types=(("File DB", "*.db"),)),
                         sg.Button('Salva Dati')],
-                       [sg.Text('Elaborazioni'), sg.Text(size=(20, 1), key='-LINE4-')],
-                       [sg.Button('Repos'), sg.Button('Cloc'), sg.Button('Exit')]]
+                        [sg.Text('Elaborazioni'), sg.Text(size=(20, 1), key='-LINE4-')],
+                        [sg.Button('Repos'), sg.Button('Cloc'), sg.Button('Densità')],
+                        [sg.Text('Grafici'), sg.Text(size=(20, 1), key='-LINE5-')],
+                        [sg.Button('Documentazione/Modificabilità'),sg.Button('Documentazione/Popolarità')],]
 
         self.titolo = 'prova GUI'
         self.window = sg.Window(self.titolo, self.layout)
@@ -60,6 +81,8 @@ class Window_Manager:
         self.controller = None
         self.query = None
         self.repos = None
+        self.cloc_results = None
+        self.dens_results = None
         self.log = logger.logger()
         self.log.write(
             '--------------------------------------INIZIO SESSIONE---------------------------------------------', 'f')
@@ -105,11 +128,12 @@ class Window_Manager:
                     self.log.write('[ERRORE] MANCA LA QUERY', 'g')
 
             if event == 'Cloc':
-                # if self.repos is not None:
                 self.log.write(
                     '------------------------------------------CALCOLO CLOC---------------------------------------',
                     'f+g')
                 self.window.perform_long_operation(lambda: self.controller.repo_cloc(), '-CLOC KEY-')
+            if event == '-CLOC KEY-':
+                self.cloc_results = values['-CLOC KEY-']
 
             if event == 'Repos':
                 self.window['-OUT-'].Update('')
@@ -117,10 +141,48 @@ class Window_Manager:
                     '--------------------------------------REPOS---------------------------------------------', 'f+g')
                 self.repos = self.controller.print_repo()
 
-            if event == '-END KEY-':
-                print('Inserimento dati nel db terminato')
+            if event == 'Densità':
+                if self.cloc_results is not None:
+                    self.log.write(
+                        '------------------------------------------CALCOLO DENSITA DOC------------------------------------',
+                        'f+g')
+                    self.window.perform_long_operation(lambda: self.controller.cloc_density_graph(self.cloc_results), '-DENS KEY-')
+                else:
+                    self.log.write('[ERRORE] Effettuare prima il calcolo del Cloc', 'f+g')
+            if event == '-DENS KEY-':
+                self.dens_results = values['-DENS KEY-']
 
-            if event in (sg.WIN_CLOSED, 'Exit'):
+            win_graph1 = None
+            if event == 'Documentazione/Modificabilità':
+                if self.dens_results is not None:
+                    forks = []
+                    for repo in self.cloc_results:
+                        forks.append(repo[2])
+                    win_graph1 = finestra_grafico(self.dens_results, forks, 'Documentazione/Modificabilità')
+                else:
+                    self.log.write('[ERRORE] Effettuare prima il calcolo delle densità', 'f+g')
+
+            if win_graph1 is not None:
+                event_graph1 = win_graph1.read()
+                if event_graph1 == sg.WIN_CLOSED:
+                    win_graph1.close()
+
+            win_graph2 = None
+            if event == 'Documentazione/Popolarità':
+                if self.dens_results is not None:
+                    stars = []
+                    for repo in self.cloc_results:
+                        stars.append(repo[1])
+                    win_graph2 = finestra_grafico(self.dens_results, stars, 'Documentazione/Popolarità')
+                else:
+                    self.log.write('[ERRORE] Effettuare prima il calcolo delle densità', 'f+g')
+
+            if win_graph2 is not None:
+                event_graph2 = win_graph2.read()
+                if event_graph2 == sg.WIN_CLOSED:
+                    win_graph2.close()
+
+            if event == sg.WIN_CLOSED:
                 # DA METTERE ALLA FINE DEL PROGETTO
                 # if self.db_file == 'Util/db_prova.db':
                 # self.controller.close()
@@ -129,3 +191,5 @@ class Window_Manager:
                     '--------------------------------------FINE SESSIONE---------------------------------------------',
                     'f')
                 self.window.close()
+                win_graph2.close()
+                win_graph1.close()
