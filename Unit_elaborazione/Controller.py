@@ -43,9 +43,10 @@ class Controller:
             a = Analisi_sorgente.Analyzer(group=repo[1])
             # Viene effettuata l'analisi della repository e aggiunta alla lista
             cloc_result = a.cloc_files(links)
-            self.log.write(cloc_result, 'f+g')
             result_cloc.append([cloc_result, repo[2], repo[3]])
-            # print(result_cloc)
+            string = "[CLOC] Name: {name:^36} LOC: {loc:<6} LOD: {lod:<6}".format(name=repo[1], loc=cloc_result[0], lod=cloc_result[1])
+            self.log.write(string, 'f+g')
+
         self.broker = None
         return result_cloc
 

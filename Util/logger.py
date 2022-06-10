@@ -1,13 +1,20 @@
 import logging
+import os
+import time
+from prettytable import PrettyTable
 
+path = 'Util/logs/'
 
 class logger:
     def __init__(self):
-        path = 'Util/github_rest.log'
-        logging.basicConfig(filename=path, filemode='a', level=logging.DEBUG, format='%(asctime)s - %(message)s')
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        full_path = path + f"{timestr}.log"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        logging.basicConfig(filename=full_path, level=logging.INFO, format='%(asctime)s - %(message)s')
+
 
     def write(self, string, mode):
-        # string = f"{string:^10}"
         if 'f' in mode:
             self.__write_log(string)
         if 'g' in mode:
@@ -18,3 +25,4 @@ class logger:
 
     def __write_gui(self, string):
         print(string)
+

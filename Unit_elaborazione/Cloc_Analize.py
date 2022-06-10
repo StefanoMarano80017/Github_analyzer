@@ -39,8 +39,6 @@ class C_Analysis:
                 """
                 c = SourceAnalysis.from_file(tmp, self.group)
                 self.summary.add(c)
-                # print(c)
-                # qui logger
             except Exception as e:
                 raise e
 

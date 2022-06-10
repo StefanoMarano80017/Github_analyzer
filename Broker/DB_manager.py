@@ -48,22 +48,15 @@ class DB:
 
     # Viene generata una copia in locale nel caso l'utente voglia salvare il db
     def backup_on_file(self, backup_name: str):
-        # existing DB
-        ram_con = self.check_conn()
-        # copy into this DB
+        db_con = sqlite3.connect(self.db_file)
         back_con = sqlite3.connect(backup_name)
         self.backup_name = backup_name
-
         try:
-            with back_con:
-                ram_con.backup(back_con, pages=0)
-            print("backup successful")
-        except sqlite3.Error as e:
-            print("Errore di backup: ", e)
-        finally:
-            if back_con:
-                back_con.close()
-                ram_con.close()
+            with db_con as db:
+                with back_con as backup:
+                    db.backup(backup, pages=0)
+        except sqlite3.Error:
+            raise "Errore di backup"
 
     def delete_db(self):
         os.remove(self.db_file)

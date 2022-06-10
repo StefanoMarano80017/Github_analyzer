@@ -21,8 +21,6 @@ class extract_code:
         except requests.exceptions.RequestException as e:
             # Gestione errore catastrofico. Uscita dal programma
             raise SystemExit(e)
-        except Exception as e:
-            raise 'errore non descritto'
 
     # Metodo della classe per ottenere il codice del file appena scaricato
     def get_content(self):

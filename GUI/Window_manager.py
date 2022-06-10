@@ -37,19 +37,19 @@ def finestra_salva():
 class Window_Manager:
     def __init__(self):
         # Creazione stile pagina con relativi bottoni
-        sg.theme('BluePurple')
+        sg.theme('LightGrey1')
         self.layout = [[sg.Text('Github Rest analyser'), sg.Text(size=(15, 2), key='-LINE1-')],
                        [sg.Multiline(size=(90, 20), auto_refresh=True, reroute_stdout=True, reroute_cprint=True,
                                      write_only=True, key='-OUT-')],
-                       [sg.Text('Inserisci un Token Github per eseguire'), sg.Text(size=(15, 1), key='-LINE2-')],
-                       [sg.Input(key='-TOKEN-', size=(85, 1))],
+                       [sg.Text('Inserisci un Token Github per eseguire'), sg.Text(size=(20, 1), key='-LINE2-')],
+                       [sg.Input(key='-TOKEN-', size=(90, 1))],
                        [sg.Text('Scrivi la tua query o carica un db compatibile'),
-                        sg.Text(size=(15, 1), key='-LINE3-')],
-                       [sg.Input(key='-IN-', size=(60, 1))],
+                        sg.Text(size=(20, 1), key='-LINE3-')],
+                       [sg.Input(key='-IN-', size=(90, 1))],
                        [sg.Text('Operazioni dati')],
                        [sg.Button('Do Query'), sg.FileBrowse('Load Data', file_types=(("File DB", "*.db"),)),
                         sg.Button('Salva Dati')],
-                       [sg.Text('Elaborazioni'), sg.Text(size=(15, 1), key='-LINE4-')],
+                       [sg.Text('Elaborazioni'), sg.Text(size=(20, 1), key='-LINE4-')],
                        [sg.Button('Repos'), sg.Button('Cloc'), sg.Button('Exit')]]
 
         self.titolo = 'prova GUI'
@@ -61,6 +61,8 @@ class Window_Manager:
         self.query = None
         self.repos = None
         self.log = logger.logger()
+        self.log.write(
+            '--------------------------------------INIZIO SESSIONE---------------------------------------------', 'f')
 
     def event_loop(self):
         while True:  # Event Loop
@@ -74,6 +76,7 @@ class Window_Manager:
             if values['Load Data']:
                 self.db_file = values['Load Data']
                 self.repos = None
+                self.log.write('[INFO] FILE CARICATO', 'f+g')
 
             self.controller = Controller.Controller(self.token, self.db_file, self.log)
 
@@ -85,6 +88,7 @@ class Window_Manager:
                             self.controller.backup(backup_file)
                             self.db_file = backup_file
                             self.controller = Controller.Controller(self.token, self.db_file, self.log)
+                            self.log.write('[INFO] SALVA ESEGUITO', 'f+g')
                 else:
                     self.log.write('[ERRORE] NESSUN DATO DA SALVARE', 'g')
 
@@ -107,10 +111,6 @@ class Window_Manager:
                     'f+g')
                 self.window.perform_long_operation(lambda: self.controller.repo_cloc(), '-CLOC KEY-')
 
-            if event == 'CLOC KEY':
-                for cloc in event['CLOC KEY']:
-                    print(cloc)
-
             if event == 'Repos':
                 self.window['-OUT-'].Update('')
                 self.log.write(
@@ -127,5 +127,5 @@ class Window_Manager:
 
                 self.log.write(
                     '--------------------------------------FINE SESSIONE---------------------------------------------',
-                    'f+g')
+                    'f')
                 self.window.close()
