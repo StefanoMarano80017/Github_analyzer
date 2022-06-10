@@ -12,47 +12,15 @@ SIZE_SEARCH = 3
 #  tasto creare file
 #  query su 'RAM'
 
-
-def finestra_salva():
-    layout = [[sg.Input(key='-IN-'), sg.Button('Submit')]]
-    win_salva = sg.Window('Inserisci il nome del file', layout, finalize=True)
-    event_salva, values_salva = win_salva.read()
-
-    backup = None
-
-    if event_salva == 'Submit':
-        backup = values_salva['-IN-']
-        if backup.find(".db") != -1:
-            win_salva.close()
-            return backup
-        else:
-            win_salva.close()
-            print('[ERRORE] IL FILE DEVE AVERE ESTENSIONE .db')
-            return None
-
-    win_salva.close()
-    return None
-
-
-def finestra_grafico(x, y, title='Grafico', descrizione='Descrizione Grafico'):
-    layout =[[sg.Text(descrizione)],
-               [sg.Canvas(key="-CANVAS-")],]
-
-    win_graph = sg.Window(title, layout, finalize=True, resizable=True, element_justification="right")
-
-    fig = matplotlib.figure.Figure(figsize=(5, 4), dpi=100)
-    fig.add_subplot(111).plot(x, y, 'o')
-
-    matplotlib.use("TkAgg")
-    draw_figure(win_graph['-CANVAS-'].TKCanvas, fig)
-
-    return win_graph
+def get_new_window(layout, title):
+    return sg.Window(title, layout, finalize=True, resizable=True, element_justification="right")
 
 def draw_figure(canvas, figure):
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
     figure_canvas_agg.draw()
     figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
     return figure_canvas_agg
+
 
 class Window_Manager:
     def __init__(self):
@@ -104,28 +72,16 @@ class Window_Manager:
             self.controller = Controller.Controller(self.token, self.db_file, self.log)
 
             if event == 'Salva Dati':
-                self.repos = self.controller.get_repo()
-                if self.repos is not None:
-                    backup_file = finestra_salva()
-                    if backup_file is not None:
-                            self.controller.backup(backup_file)
-                            self.db_file = backup_file
-                            self.controller = Controller.Controller(self.token, self.db_file, self.log)
-                            self.log.write('[INFO] SALVA ESEGUITO', 'f+g')
-                else:
-                    self.log.write('[ERRORE] NESSUN DATO DA SALVARE', 'g')
+               self.__salva_dati()
 
             if event == 'Do Query':
-                if self.query is not None and self.token is not None:
-                    self.log.write(
-                        '---------------------------------------------ESEGUO QUERY GIT--------------------------',
-                        'f+g')
-                    self.window.perform_long_operation(lambda: self.controller.get_git_data(self.query, SIZE_SEARCH), '-END KEY-')
-                    self.repos = self.controller.get_repo()
-                if self.token is None:
-                    self.log.write('[ERRORE] MANCA IL TOKEN', 'g')
-                if self.query is None:
-                    self.log.write('[ERRORE] MANCA LA QUERY', 'g')
+                self.__do_query()
+
+            if event == 'Repos':
+                self.window['-OUT-'].Update('')
+                self.log.write(
+                    '--------------------------------------REPOS---------------------------------------------', 'f+g')
+                self.repos = self.controller.print_repo()
 
             if event == 'Cloc':
                 self.log.write(
@@ -134,12 +90,6 @@ class Window_Manager:
                 self.window.perform_long_operation(lambda: self.controller.repo_cloc(), '-CLOC KEY-')
             if event == '-CLOC KEY-':
                 self.cloc_results = values['-CLOC KEY-']
-
-            if event == 'Repos':
-                self.window['-OUT-'].Update('')
-                self.log.write(
-                    '--------------------------------------REPOS---------------------------------------------', 'f+g')
-                self.repos = self.controller.print_repo()
 
             if event == 'Densità':
                 if self.cloc_results is not None:
@@ -158,7 +108,7 @@ class Window_Manager:
                     forks = []
                     for repo in self.cloc_results:
                         forks.append(repo[2])
-                    win_graph1 = finestra_grafico(self.dens_results, forks, 'Documentazione/Modificabilità')
+                    win_graph1 = self.__graph_window('Documentazione/Modificabilità','Documentazione/Modificabilità', self.dens_results, forks)
                 else:
                     self.log.write('[ERRORE] Effettuare prima il calcolo delle densità', 'f+g')
 
@@ -173,7 +123,7 @@ class Window_Manager:
                     stars = []
                     for repo in self.cloc_results:
                         stars.append(repo[1])
-                    win_graph2 = finestra_grafico(self.dens_results, stars, 'Documentazione/Popolarità')
+                    win_graph2 = self.__graph_window('Documentazione/Popolarità', 'Documentazione/Popolarità', self.dens_results, stars)
                 else:
                     self.log.write('[ERRORE] Effettuare prima il calcolo delle densità', 'f+g')
 
@@ -193,3 +143,59 @@ class Window_Manager:
                 self.window.close()
                 win_graph2.close()
                 win_graph1.close()
+
+    def __salva_dati(self):
+        self.repos = self.controller.get_repo()
+        if self.repos is not None:
+            backup_file = self.__salva__window()
+            if backup_file is not None:
+                self.controller.backup(backup_file)
+                self.db_file = backup_file
+                self.controller = Controller.Controller(self.token, self.db_file, self.log)
+                self.log.write('[INFO] SALVA ESEGUITO', 'f+g')
+        else:
+            self.log.write('[ERRORE] NESSUN DATO DA SALVARE', 'g')
+
+    def __do_query(self):
+        if self.query is not None and self.token is not None:
+            self.log.write(
+                '---------------------------------------------ESEGUO QUERY GIT--------------------------',
+                'f+g')
+            self.window.perform_long_operation(lambda: self.controller.get_git_data(self.query, SIZE_SEARCH),
+                                               '-END KEY-')
+            self.repos = self.controller.get_repo()
+        if self.token is None:
+            self.log.write('[ERRORE] MANCA IL TOKEN', 'g')
+        if self.query is None:
+            self.log.write('[ERRORE] MANCA LA QUERY', 'g')
+
+    def __salva__window(self):
+        layout = [[sg.Input(key='-IN-'), sg.Button('Submit')]]
+        win_salva = get_new_window(layout, 'Salva file')
+        event_salva, values_salva = win_salva.read()
+        if event_salva == 'Submit':
+            backup = values_salva['-IN-']
+            if backup.find(".db") != -1:
+                win_salva.close()
+                return backup
+            else:
+                win_salva.close()
+                print('[ERRORE] IL FILE DEVE AVERE ESTENSIONE .db')
+                return None
+
+        win_salva.close()
+        return None
+
+    def __graph_window(self, title, descrizione, x, y):
+        layout = [[sg.Text(descrizione)],
+                  [sg.Canvas(key="-CANVAS-")], ]
+
+        win_graph = get_new_window(layout, title)
+
+        fig = matplotlib.figure.Figure(figsize=(5, 4), dpi=100)
+        fig.add_subplot(111).plot(x, y, 'o')
+
+        matplotlib.use("TkAgg")
+        draw_figure(win_graph['-CANVAS-'].TKCanvas, fig)
+
+        return win_graph
