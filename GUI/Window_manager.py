@@ -42,7 +42,7 @@ class Window_Manager:
                         [sg.Button('Documentazione/Modificabilità'),sg.Button('Documentazione/Popolarità')],]
 
         self.titolo = 'prova GUI'
-        self.window = sg.Window(self.titolo, self.layout)
+        self.window = sg.Window(self.titolo, self.layout, finalize=True)
         self.db_file = 'Util/db_prova.db'
         self.query = None
         self.token = None
@@ -56,42 +56,57 @@ class Window_Manager:
             '--------------------------------------INIZIO SESSIONE---------------------------------------------', 'f')
 
     def event_loop(self):
+        win_graph1 = None
+        win_graph2 = None
+        win_salva = None
         while True:  # Event Loop
-            event, values = self.window.read()
-            self.window.refresh()
-
-            if values['-TOKEN-']:
-                self.token = values['-TOKEN-']
-            if values['-IN-']:
-                self.query = values['-IN-']
-            if values['Load Data']:
-                self.db_file = values['Load Data']
-                self.repos = None
-                self.log.write('[INFO] FILE CARICATO', 'f+g')
-
+            windows, event, values = sg.read_all_windows()
             self.controller = Controller.Controller(self.token, self.db_file, self.log)
 
+            if event == sg.WIN_CLOSED:
+                if windows == win_graph1:
+                    win_graph1.close()
+                    win_graph1 = None
+                elif windows  == win_graph2:
+                    win_graph2.close()
+                    win_graph2 = None
+                elif windows == win_salva:
+                    win_salva.close()
+                    win_salva = None
+                elif windows == self.window:
+                    # DA METTERE ALLA FINE DEL PROGETTO
+                    # if self.db_file == 'Util/db_prova.db':
+                    # self.controller.close()
+                    self.log.write(
+                        '--------------------------------------FINE SESSIONE---------------------------------------------',
+                        'f')
+                    windows.close()
+                    break
+
             if event == 'Salva Dati':
-               self.__salva_dati()
+                win_salva = self.__salva__window()
+            elif event == 'Submit_salva':
+                backup = values['-IN SALVA-']
+                if backup.find(".db") != -1:
+                    win_salva.close()
+                    self.__salva_dati(backup)
+                else:
+                    win_salva.close()
+                    print('[ERRORE] IL FILE DEVE AVERE ESTENSIONE .db')
 
             if event == 'Do Query':
                 self.__do_query()
-
-            if event == 'Repos':
+            elif event == 'Repos':
                 self.window['-OUT-'].Update('')
                 self.log.write(
                     '--------------------------------------REPOS---------------------------------------------', 'f+g')
                 self.repos = self.controller.print_repo()
-
-            if event == 'Cloc':
+            elif event == 'Cloc':
                 self.log.write(
                     '------------------------------------------CALCOLO CLOC---------------------------------------',
                     'f+g')
                 self.window.perform_long_operation(lambda: self.controller.repo_cloc(), '-CLOC KEY-')
-            if event == '-CLOC KEY-':
-                self.cloc_results = values['-CLOC KEY-']
-
-            if event == 'Densità':
+            elif event == 'Densità':
                 if self.cloc_results is not None:
                     self.log.write(
                         '------------------------------------------CALCOLO DENSITA DOC------------------------------------',
@@ -99,10 +114,13 @@ class Window_Manager:
                     self.window.perform_long_operation(lambda: self.controller.cloc_density_graph(self.cloc_results), '-DENS KEY-')
                 else:
                     self.log.write('[ERRORE] Effettuare prima il calcolo del Cloc', 'f+g')
+
+            if event == '-CLOC KEY-':
+                self.cloc_results = values['-CLOC KEY-']
             if event == '-DENS KEY-':
                 self.dens_results = values['-DENS KEY-']
 
-            win_graph1 = None
+
             if event == 'Documentazione/Modificabilità':
                 if self.dens_results is not None:
                     forks = []
@@ -111,13 +129,6 @@ class Window_Manager:
                     win_graph1 = self.__graph_window('Documentazione/Modificabilità','Documentazione/Modificabilità', self.dens_results, forks)
                 else:
                     self.log.write('[ERRORE] Effettuare prima il calcolo delle densità', 'f+g')
-
-            if win_graph1 is not None:
-                event_graph1 = win_graph1.read()
-                if event_graph1 == sg.WIN_CLOSED:
-                    win_graph1.close()
-
-            win_graph2 = None
             if event == 'Documentazione/Popolarità':
                 if self.dens_results is not None:
                     stars = []
@@ -127,34 +138,29 @@ class Window_Manager:
                 else:
                     self.log.write('[ERRORE] Effettuare prima il calcolo delle densità', 'f+g')
 
-            if win_graph2 is not None:
-                event_graph2 = win_graph2.read()
-                if event_graph2 == sg.WIN_CLOSED:
-                    win_graph2.close()
+            if windows == self.window:
+                if values['-TOKEN-']:
+                    self.token = values['-TOKEN-']
+                if values['-IN-']:
+                    self.query = values['-IN-']
+                if values['Load Data']:
+                    self.db_file = values['Load Data']
+                    self.repos = None
+                    self.log.write('[INFO] FILE CARICATO', 'f+g')
 
-            if event == sg.WIN_CLOSED:
-                # DA METTERE ALLA FINE DEL PROGETTO
-                # if self.db_file == 'Util/db_prova.db':
-                # self.controller.close()
-
-                self.log.write(
-                    '--------------------------------------FINE SESSIONE---------------------------------------------',
-                    'f')
-                self.window.close()
-                win_graph2.close()
-                win_graph1.close()
-
-    def __salva_dati(self):
+    def __salva_dati(self,  backup_file):
         self.repos = self.controller.get_repo()
         if self.repos is not None:
-            backup_file = self.__salva__window()
-            if backup_file is not None:
-                self.controller.backup(backup_file)
-                self.db_file = backup_file
-                self.controller = Controller.Controller(self.token, self.db_file, self.log)
-                self.log.write('[INFO] SALVA ESEGUITO', 'f+g')
+            self.controller.backup(backup_file)
+            self.db_file = backup_file
+            self.controller = Controller.Controller(self.token, self.db_file, self.log)
+            self.log.write('[INFO] SALVA ESEGUITO', 'f+g')
         else:
             self.log.write('[ERRORE] NESSUN DATO DA SALVARE', 'g')
+
+    def __salva__window(self):
+        layout = [[sg.Input(key='-IN SALVA-'), sg.Button('Submit_salva')]]
+        return get_new_window(layout, 'Salva file')
 
     def __do_query(self):
         if self.query is not None and self.token is not None:
@@ -169,23 +175,6 @@ class Window_Manager:
         if self.query is None:
             self.log.write('[ERRORE] MANCA LA QUERY', 'g')
 
-    def __salva__window(self):
-        layout = [[sg.Input(key='-IN-'), sg.Button('Submit')]]
-        win_salva = get_new_window(layout, 'Salva file')
-        event_salva, values_salva = win_salva.read()
-        if event_salva == 'Submit':
-            backup = values_salva['-IN-']
-            if backup.find(".db") != -1:
-                win_salva.close()
-                return backup
-            else:
-                win_salva.close()
-                print('[ERRORE] IL FILE DEVE AVERE ESTENSIONE .db')
-                return None
-
-        win_salva.close()
-        return None
-
     def __graph_window(self, title, descrizione, x, y):
         layout = [[sg.Text(descrizione)],
                   [sg.Canvas(key="-CANVAS-")], ]
@@ -197,5 +186,4 @@ class Window_Manager:
 
         matplotlib.use("TkAgg")
         draw_figure(win_graph['-CANVAS-'].TKCanvas, fig)
-
         return win_graph
