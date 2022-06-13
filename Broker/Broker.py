@@ -19,7 +19,7 @@ class Broker:
         # fork > 0 & star > 0
         # created:2017-05-31 stars:>0 forks:>0 language:Java
         query_txt = query_string + " stars:>0 forks:>0"
-        self.log.write("Query: " + query_txt, 'f+g')
+        self.log.write("[Query] " + query_txt, 'f+g')
         # return list[repo]
         return self.git_repo.do_query_txt(query_txt)
 

@@ -78,6 +78,16 @@ class Window_Manager:
                     windows.close()
                     break
 
+            if windows == self.window:
+                if values['-TOKEN-']:
+                    self.token = values['-TOKEN-']
+                if values['-IN-']:
+                    self.query = values['-IN-']
+                if values['Load Data']:
+                    self.db_file = values['Load Data']
+                    self.repos = None
+                    self.log.write('[INFO] FILE CARICATO', 'f+g')
+
             if event == 'Salva Dati':
                 win_salva = self.__salva__window()
             elif event == 'Submit_salva':
@@ -92,7 +102,6 @@ class Window_Manager:
             if event == 'Do Query':
                 self.__do_query()
             elif event == 'Repos':
-                self.window['-OUT-'].Update('')
                 self.log.write(
                     '--------------------------------------REPOS---------------------------------------------', 'f+g')
                 self.repos = self.controller.print_repo()
@@ -133,16 +142,6 @@ class Window_Manager:
                 else:
                     self.log.write('[ERRORE] Effettuare prima il calcolo delle densità', 'f+g')
 
-            if windows == self.window:
-                if values['-TOKEN-']:
-                    self.token = values['-TOKEN-']
-                if values['-IN-']:
-                    self.query = values['-IN-']
-                if values['Load Data']:
-                    self.db_file = values['Load Data']
-                    self.repos = None
-                    self.log.write('[INFO] FILE CARICATO', 'f+g')
-
     def __salva_dati(self,  backup_file):
         self.repos = self.controller.get_repo()
         if self.repos is not None:
@@ -150,8 +149,6 @@ class Window_Manager:
             self.db_file = backup_file
             self.controller = Controller.Controller(self.token, self.db_file, self.log)
             self.log.write('[INFO] SALVATAGGIO ESEGUITO', 'f+g')
-        else:
-            self.log.write('[ERRORE] NESSUN DATO DA SALVARE', 'g')
 
     def __salva__window(self):
         layout = [[sg.Input(key='-IN SALVA-'), sg.Button('Submit_salva')]]

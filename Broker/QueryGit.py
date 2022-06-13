@@ -1,5 +1,6 @@
 from github import Github
 from github import Repository
+from github import GithubException
 
 from Broker import Query_Txt
 from Broker import TokenUtil
@@ -12,13 +13,6 @@ class QueryRepo:
         self.g = Github(token, per_page=100)
         self.tokenutil = TokenUtil.Token(token)
 
-    # Con questo metodo viene lanciata la query su github
-    def do_query_ini(self, query_id, sort='stars', order='desc'):
-        # sort – string (‘stars’, ‘forks’, ‘updated’)
-        # order – string (‘asc’, ‘desc’)
-        query_string = Query_Txt.read_query(query_id, 'GIT')
-        return self.do_query_txt(query_string, sort, order)
-
     # Contatore query
     def count_query(self, query_txt, sort='stars', order='desc'):
         self.tokenutil.wait_is_usable()
@@ -27,15 +21,20 @@ class QueryRepo:
 
     # Metodo che esegue la query e salva le singole repository
     def do_query_txt(self, query_txt, sort='stars', order='desc') -> list:
-        count = self.count_query(query_txt)
-        repo_list = []
-        for i in range(0, round(count / 100) + 1):
-            # Valutazione Token
-            self.tokenutil.wait_is_usable()
-            # Viene creata una lista di repository
-            for repo in self.g.search_repositories(query_txt, sort, order).get_page(i):
-                repo_list.append(repo)
-        return repo_list
+        try:
+            count = self.count_query(query_txt)
+            repo_list = []
+            for i in range(0, round(count / 100) + 1):
+                # Valutazione Token
+                self.tokenutil.wait_is_usable()
+                # Viene creata una lista di repository
+                for repo in self.g.search_repositories(query_txt, sort, order).get_page(i):
+                    repo_list.append(repo)
+            return repo_list
+        except GithubException.BadCredentialsException as e:
+            raise 'token errato'
+        except GithubException.RateLimitExceededException as e:
+            raise 'limite'
 
     # Creazione lista dei file di una repository
     def extract_file_repo(self, repo: Repository.Repository):

@@ -16,7 +16,14 @@ class Controller:
         try:
             self.broker.do_search(query_string, size_max)
         except Exception as e:
-            self.log.write('[ERRORE] ' + str(e), 'g')
+            if str(e) == 'token errato':
+                self.log.write('[ERRORE] Token di accesso errato', 'g')
+            if str(e) == 'limite':
+                self.log.write('[ERRORE] Rate Limit superato, attendere del tempo', 'g')
+            if str(e) == "name 'github' is not defined":
+                self.log.write('[ERRORE] Impossibile collegarsi a Github', 'g')
+            else:
+                self.log.write('[ERRORE] ' + str(e), 'g')
         finally:
             self.broker = None
 
@@ -27,7 +34,10 @@ class Controller:
         try:
             repos = self.broker.get_repo()
         except Exception as e:
-            self.log.write('[ERRORE] ' + str(e), 'g')
+            if str(e) == 'no such table: repos':
+                self.log.write('[ERRORE] Nessun dato selezionato', 'g')
+            else:
+                self.log.write('[ERRORE] ' + str(e), 'g')
         finally:
             self.broker = None
             return repos
