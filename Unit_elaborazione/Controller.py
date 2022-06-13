@@ -13,19 +13,35 @@ class Controller:
     def get_git_data(self, query_string: str, size_max):
         # eseguo query su git e salvo i dati sul db
         self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        self.broker.do_search(query_string, size_max)
-        self.broker = None
+        try:
+            self.broker.do_search(query_string, size_max)
+        except Exception as e:
+            self.log.write('[ERRORE] ' + str(e), 'g')
+        finally:
+            self.broker = None
 
     def get_repo(self) -> list:
         # ottengo i dati dal db
         self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        repos = self.broker.get_repo()
-        self.broker = None
-        return repos
+        repos = None
+        try:
+            repos = self.broker.get_repo()
+        except Exception as e:
+            self.log.write('[ERRORE] ' + str(e), 'g')
+        finally:
+            self.broker = None
+            return repos
 
     def print_repo(self):
         self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        self.broker.print_table_repo()
+        try:
+            self.broker.print_table_repo()
+        except Exception as err:
+            if str(err) == 'no such table: repos':
+                self.log.write('[ERRORE] Non sono presenti repos', 'g')
+            else:
+                self.log.write('[ERRORE] Impossibile lettura repos', 'g')
+
         self.broker = None
 
     def get_link(self, id):
@@ -34,21 +50,30 @@ class Controller:
         self.broker = None
         return links
 
-    def repo_cloc(self) -> list:
+    def repo_cloc(self):
         result_cloc = []
         self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        for repo in self.broker.get_repo():
-            # La chiamata al broker ha lo scopo di leggere i dati presenti nel db
-            links = self.broker.get_link_repo(repo[0])
-            a = Analisi_sorgente.Analyzer(group=repo[1])
-            # Viene effettuata l'analisi della repository e aggiunta alla lista
-            cloc_result = a.cloc_files(links)
-            result_cloc.append([cloc_result, repo[2], repo[3]])
-            string = "[CLOC] Name: {name:^36} LOC: {loc:<6} LOD: {lod:<6}".format(name=repo[1], loc=cloc_result[0], lod=cloc_result[1])
-            self.log.write(string, 'f+g')
-
-        self.broker = None
-        return result_cloc
+        try:
+            for repo in self.broker.get_repo():
+                # La chiamata al broker ha lo scopo di leggere i dati presenti nel db
+                links = self.broker.get_link_repo(repo[0])
+                a = Analisi_sorgente.Analyzer(group=repo[1])
+                # Viene effettuata l'analisi della repository e aggiunta alla lista
+                cloc_result = a.cloc_files(links)
+                result_cloc.append([cloc_result, repo[2], repo[3]])
+                string = "[CLOC] Name: {name:^36} LOC: {loc:<6} LOD: {lod:<6}".format(name=repo[1], loc=cloc_result[0], lod=cloc_result[1])
+                self.log.write(string, 'f+g')
+                #total_lines = cloc_result[0] + cloc_result[1] + cloc_result[2]
+                #self.broker.stats_to_db((repo[0], cloc_result[0], cloc_result[1], total_lines))
+            self.broker = None
+            return result_cloc
+        except Exception as e:
+            if str(e) == 'no such table: repos':
+                self.log.write('[ERRORE] Non sono presenti repos da elaborare', 'g')
+            if str(e) == 'no such table: links':
+                self.log.write('[ERRORE] Non è possibile ricavare il codice sorgente', 'g')
+            self.broker = None
+            return None
 
     def cloc_density_graph(self, list_raw):
         li_r = []

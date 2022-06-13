@@ -5,12 +5,7 @@ import matplotlib
 from Unit_elaborazione import Controller
 from Util import logger
 
-cprint = sg.cprint
-
 SIZE_SEARCH = 3
-
-#  tasto creare file
-#  query su 'RAM'
 
 def get_new_window(layout, title):
     return sg.Window(title, layout, finalize=True, resizable=True, element_justification="right")
@@ -43,7 +38,7 @@ class Window_Manager:
 
         self.titolo = 'prova GUI'
         self.window = sg.Window(self.titolo, self.layout, finalize=True)
-        self.db_file = 'Util/db_prova.db'
+        self.db_file = 'Util/db_default.db'
         self.query = None
         self.token = None
         self.controller = None
@@ -154,7 +149,7 @@ class Window_Manager:
             self.controller.backup(backup_file)
             self.db_file = backup_file
             self.controller = Controller.Controller(self.token, self.db_file, self.log)
-            self.log.write('[INFO] SALVA ESEGUITO', 'f+g')
+            self.log.write('[INFO] SALVATAGGIO ESEGUITO', 'f+g')
         else:
             self.log.write('[ERRORE] NESSUN DATO DA SALVARE', 'g')
 

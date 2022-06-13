@@ -12,6 +12,7 @@ class Broker:
         self.git_repo = QueryGit.QueryRepo(token)
         self.dao_repo = DAOS.DAO_Repo(db_file)
         self.dao_links = DAOS.DAO_link(db_file)
+        self.dao_stats = DAOS.DAO_stats(db_file)
         self.log = logger
 
     def __do_git_query_repo(self, query_string: str):
@@ -27,9 +28,12 @@ class Broker:
 
     def do_search(self, query_string: str, size_max):
         # eseguo una query su git
-        repos = self.__select_repo(query_string, size_max)
-        if repos is not None:
-            self.__repos_to_db(repos)
+        try:
+            repos = self.__select_repo(query_string, size_max)
+            if repos is not None:
+                self.__repos_to_db(repos)
+        except Exception as e:
+            raise e
 
     def __repos_to_db(self, repos: list):
         self.log.write(
@@ -47,6 +51,12 @@ class Broker:
             "-----------------------------------SALVATAGGIO IN DB TERMINATO-------------------------------------------",
             "f+g")
 
+    def stats_to_db(self, args):
+        try:
+            self.dao_stats.set_data(args)
+        except Exception as e:
+            self.log.write(e, 'f+g')
+
     def __select_repo(self, query_string: str, size_max):
         # eseguo query su git con un limite al numero di repository
         repos = self.__do_git_query_repo(query_string)
@@ -59,18 +69,21 @@ class Broker:
             return repos
 
     def get_repo(self):
-        return self.dao_repo.get_data()
+        try:
+            return self.dao_repo.get_data()
+        except Exception as e:
+            raise e
 
     def get_link_repo(self, id_repo: str):
-        links_raw = self.dao_links.get_data('select_link_id', (id_repo,))
-        links = []
-        if len(links_raw) is not None:
+        try:
+            links_raw = self.dao_links.get_data('select_link_id', (id_repo,))
+            links = []
             for link_raw in links_raw:
                 li = list(link_raw)
                 links.append([li[1], li[3]])
             return links
-        else:
-            raise "Exception, db link vuoto"
+        except Exception as e:
+            raise e
 
     def print_table_link(self):
         # metodo per il debug
@@ -78,14 +91,13 @@ class Broker:
             print(link)
 
     def print_table_repo(self):
-        # metodo per il debugg
-        if self.dao_repo.get_data() is not None:
+        try:
             for repo in self.dao_repo.get_data():
                 string = "ID: " + str(repo[0]) + " Full Name: " + str(repo[1]) + " Stars: " + str(
                     repo[2]) + " Forks: " + str(repo[3])
                 self.log.write(string, 'f+g')
-        else:
-            self.log.write('[ERRORE] NESSUN DATO DA VISUALIZZARE', 'g')
+        except Exception as e:
+            raise e
 
     def delete_db(self):
         db = DB_manager.DB(self.db_file)

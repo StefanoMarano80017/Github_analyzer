@@ -33,13 +33,12 @@ class DAO_Repo(DAO_Astratto):
             self.db.do_query(query_tabella)
             self.db.do_query(query_set, args)
         except Exception as e:
-            print('Errore salvataggio dati: ' + str(e))
+            raise e
         finally:
             self.db.close_connection()
 
     # Con questo metodo viene implementato il read repo, ovvero, l'operazione di select repo
     def get_data(self, query_id="select_repo", args=None):
-
         self.db.check_conn()
         query_txt = Query_Txt.read_query(query_id, 'DB')
         repos = []
@@ -52,9 +51,7 @@ class DAO_Repo(DAO_Astratto):
                     repos.append(row)
             return repos
         except Exception as e:
-            print('Errore in lettura: ' + str(e))
-            return None
-
+            raise e
 
 class DAO_link(DAO_Astratto):
     def __init__(self, db_file):
@@ -75,7 +72,7 @@ class DAO_link(DAO_Astratto):
                     links.append(row)
             return links
         except Exception as e:
-            print('Errore in lettura: ' + str(e))
+            raise e
 
     # Con questo metodo viene implementato il create link, ovvero, l'insert link
     def set_data(self, args, query_id="insert_link"):
@@ -87,6 +84,24 @@ class DAO_link(DAO_Astratto):
             self.db.do_query(query_tabella)
             self.db.do_query(query_set, args)
         except Exception as e:
-            print('Errore in scrittura: ' + str(e))
+            raise e
+        finally:
+            self.db.close_connection()
+
+class DAO_stats(DAO_Astratto):
+    def __init__(self, db_file):
+        self.db_file = db_file
+        self.db = DB_manager.DB(self.db_file)
+
+    def set_data(self, args, query_id='insert_stats'):
+        self.db.check_conn()
+        query_tabella = Query_Txt.read_query("create_stats", 'DB')
+        query_set = Query_Txt.read_query(query_id, 'DB')
+
+        try:
+            self.db.do_query(query_tabella)
+            self.db.do_query(query_set, args)
+        except Exception as e:
+            raise e
         finally:
             self.db.close_connection()
