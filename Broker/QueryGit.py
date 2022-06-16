@@ -1,8 +1,8 @@
+from github import BadCredentialsException
 from github import Github
+from github import RateLimitExceededException
 from github import Repository
-from github import GithubException
 
-from Broker import Query_Txt
 from Broker import TokenUtil
 
 
@@ -31,9 +31,9 @@ class QueryRepo:
                 for repo in self.g.search_repositories(query_txt, sort, order).get_page(i):
                     repo_list.append(repo)
             return repo_list
-        except GithubException.BadCredentialsException as e:
+        except BadCredentialsException as e:
             raise 'token errato'
-        except GithubException.RateLimitExceededException as e:
+        except RateLimitExceededException as e:
             raise 'limite'
 
     # Creazione lista dei file di una repository

@@ -85,17 +85,14 @@ class Broker:
         except Exception as e:
             raise e
 
-    def print_table_link(self):
-        # metodo per il debug
-        for link in self.dao_links.get_data():
-            print(link)
-
-    def print_table_repo(self):
+    def get_cloc(self, id_repo: str):
         try:
-            for repo in self.dao_repo.get_data():
-                string = "ID: " + str(repo[0]) + " Full Name: " + str(repo[1]) + " Stars: " + str(
-                    repo[2]) + " Forks: " + str(repo[3])
-                self.log.write(string, 'f+g')
+            stats_raw = self.dao_links.get_data('select_stats', (id_repo,))
+            stats = []
+            for stat_raw in stats_raw:
+                li = list(stat_raw)
+                stats.append([li[1], li[2], li[3]])
+            return stats
         except Exception as e:
             raise e
 

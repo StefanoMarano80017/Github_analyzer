@@ -53,6 +53,7 @@ class DAO_Repo(DAO_Astratto):
         except Exception as e:
             raise e
 
+
 class DAO_link(DAO_Astratto):
     def __init__(self, db_file):
         self.db_file = db_file
@@ -88,6 +89,7 @@ class DAO_link(DAO_Astratto):
         finally:
             self.db.close_connection()
 
+
 class DAO_stats(DAO_Astratto):
     def __init__(self, db_file):
         self.db_file = db_file
@@ -105,3 +107,18 @@ class DAO_stats(DAO_Astratto):
             raise e
         finally:
             self.db.close_connection()
+
+    def get_data(self, query_id='select_stats', args=None):
+        self.db.check_conn()
+        query_txt = Query_Txt.read_query(query_id, 'DB')
+        links = []
+        try:
+            if args is None:
+                for row in self.db.do_query(query_txt):
+                    links.append(row)
+            else:
+                for row in self.db.do_query(query_txt, args):
+                    links.append(row)
+            return links
+        except Exception as e:
+            raise e
