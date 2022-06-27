@@ -26,5 +26,4 @@ class Analyzer:
                 # Viene richiamato il metodo count_file di cloc per effettuare l'analisi dei commenti
                 self.cloc.count_file(req.get_content(), suffix)
         except Exception as e:
-            print('errore cloc_file: ')
-            print(e)
+            raise '[ERRORE] Cloc' + str(e)

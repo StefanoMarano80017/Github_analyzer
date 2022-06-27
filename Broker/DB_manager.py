@@ -16,9 +16,8 @@ class DB:
             self.conn = sqlite3.connect(self.db_file)
             self.conn_alive = True
         except sqlite3.Error as err:
-            print("Errore! impossibile stabile connessione")
-            print(err)
             self.conn_alive = False
+            raise err
 
     # Viene Chiusa la connessione
     def close_connection(self):

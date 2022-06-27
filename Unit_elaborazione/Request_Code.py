@@ -14,10 +14,10 @@ class extract_code:
             return requests.get(self.link)
         except requests.exceptions.Timeout as e:
             # Gestione errore in caso di timeout
-            print(e.response.text)
+            raise e.response.text
         except requests.exceptions.TooManyRedirects as e:
             # Gestione errore in caso di troppe redirezioni delle pagine
-            print(e.response.text)
+            raise e.response.text
         except requests.exceptions.RequestException as e:
             # Gestione errore catastrofico. Uscita dal programma
             raise SystemExit(e)

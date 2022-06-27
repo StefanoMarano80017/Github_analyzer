@@ -21,7 +21,7 @@ class Token:
                 # Se si supera le richieste nel minuto aspetta waiting_time
                 time.sleep(self.waiting_time)
         except Exception as e:
-            print(e)
+            raise e
 
     # metodo della classe che controlla il limite delle richieste
     def __is_usuable(self):

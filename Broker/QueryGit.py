@@ -34,7 +34,7 @@ class QueryRepo:
         except BadCredentialsException as e:
             raise 'token errato'
         except RateLimitExceededException as e:
-            raise 'limite'
+            raise 'Rate Limit superato'
 
     # Creazione lista dei file di una repository
     def extract_file_repo(self, repo: Repository.Repository):

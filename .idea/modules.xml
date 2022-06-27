@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/GithubREST.iml" filepath="$PROJECT_DIR$/.idea/GithubREST.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Github_analyzer.iml" filepath="$PROJECT_DIR$/.idea/Github_analyzer.iml" />
     </modules>
   </component>
 </project>
