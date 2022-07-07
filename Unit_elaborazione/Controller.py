@@ -1,108 +1,122 @@
-from Broker import Broker
-from Unit_elaborazione import Analisi_sorgente
+from Datas import Broker
+from Unit_elaborazione.AbstractElaborazione import AbstractElaborazione
+
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        else:
+            cls._instances[cls].__init__(*args, **kwargs)
+        return cls._instances[cls]
 
 
 # La classe controller ha il compito di coordinare le funzioni di analisi sui repository
-class Controller:
-    def __init__(self, token, db_file, logger):
+class Controller(metaclass=Singleton):
+    def __init__(self, token=None, db_file=None, logger=None):
         self.broker = None
         self.token = token
         self.db_file = db_file
         self.log = logger
+        self.ElabList = list()
 
+
+    """
+        OPERAZIONI DI GESTIONE ELABORAZIONI
+    """
+    def set_param(self, token:str, db:str):
+        self.token = token
+        self.db_file = db
+
+    def AttachElab(self, Elab: AbstractElaborazione):
+        if Elab is not None:
+            self.ElabList.append(Elab)
+        else:
+            raise 'Elab is None'
+
+    def DoElaborazione(self, ElabName, RepoList) -> list:
+        if ElabName is not None:
+            for Elab in self.ElabList:
+                if Elab.GetName() == ElabName:
+                    return Elab.DoElaborazione(RepoList)
+            raise "ELab inesistente"
+        else:
+            raise "Elabname None"
+
+    """
+        OPERAZIONI DI GESTIONE DATI 
+    """
+    def Get_repo_list(self):
+
+        RepoList = list()
+        with ContextBroker(self.token, self.db_file, self.log) as b:
+            repos = b.get_repo()
+            if repos is not None:
+                for repo in repos:
+                    links = b.get_link_repo(repo[0])
+                    RepoList.append([repo, links])
+                return RepoList
+            else:
+                return None
+
+
+    def Get_repos(self):
+        with ContextBroker(self.token, self.db_file, self.log) as b:
+            return b.get_repo()
+
+    # eseguo query su git e salvo i dati sul db
     def get_git_data(self, query_string: str, size_max):
-        # eseguo query su git e salvo i dati sul db
-        self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        try:
-            self.broker.do_search(query_string, size_max)
-        except Exception as e:
-            if str(e) == 'token errato':
-                self.log.write('[ERRORE] Token di accesso errato', 'g')
-            if str(e) == 'limite':
-                self.log.write('[ERRORE] Rate Limit superato, attendere del tempo', 'g')
-            if str(e) == "name 'github' is not defined":
-                self.log.write('[ERRORE] Impossibile collegarsi a Github', 'g')
-            else:
-                self.log.write('[ERRORE] ' + str(e), 'g')
-        finally:
-            self.broker = None
-
-    def get_repo(self) -> list:
-        # ottengo i dati dal db
-        self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        repos = None
-        try:
-            repos = self.broker.get_repo()
-        except Exception as e:
-            if str(e) == 'no such table: repos':
-                self.log.write('[ERRORE] Nessun dato selezionato', 'g')
-            else:
-                self.log.write('[ERRORE] ' + str(e), 'g')
-        finally:
-            self.broker = None
-            return repos
-
-    def get_link(self, id):
-        self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        links = self.broker.get_link_repo(id)
-        self.broker = None
-        return links
-
-    def repo_cloc(self):
-        result_cloc = []
-        self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        try:
-            for repo in self.broker.get_repo():
-                # La chiamata al broker ha lo scopo di leggere i dati presenti nel db
-                links = self.broker.get_link_repo(repo[0])
-                a = Analisi_sorgente.Analyzer(group=repo[1])
-                # Viene effettuata l'analisi della repository e aggiunta alla lista
-                cloc_result = a.cloc_files(links)
-                result_cloc.append([cloc_result, repo[2], repo[3]])
-                string = "[CLOC] Name: {name:^36} LOC: {loc:<6} LOD: {lod:<6}".format(name=repo[1], loc=cloc_result[0],
-                                                                                      lod=cloc_result[1])
-                self.log.write(string, 'f+g')
-                total_lines = cloc_result[0] + cloc_result[1] + cloc_result[2]
-                self.broker.stats_to_db((repo[0], cloc_result[0], cloc_result[1], total_lines))
-            self.broker = None
-            return result_cloc
-        except Exception as e:
-            if str(e) == 'no such table: repos':
-                self.log.write('[ERRORE] Non sono presenti repos da elaborare', 'g')
-            if str(e) == 'no such table: links':
-                self.log.write('[ERRORE] Non è possibile ricavare il codice sorgente', 'g')
-            self.broker = None
-            return None
-
-    def get_cloc(self, id_repo):
-        self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        cloc_list = self.broker.get_cloc(id_repo)
-        self.broker = None
-        return cloc_list
-
-    def cloc_density_graph(self, list_raw):
-        li_r = []
-        for li in list_raw:
+        with ContextBroker(self.token, self.db_file, self.log) as b:
             try:
-                total_lines = li[0][0] + li[0][1] + li[0][2]
-                density = (li[0][1] / total_lines) * 100
-            except ZeroDivisionError:
-                density = 0
-            finally:
-                density = round(density, 2)
-                li_r.append(density)
-                string = "[DENSITY CLOC] Density: {dens:^4} Stars: {stars:<6} forks: {forks:<6}".format(dens=density,
-                                                                                                        stars=li[1],
-                                                                                                        forks=li[2])
-                self.log.write(string, 'f+g')
-        return li_r
+                b.do_search(query_string, size_max)
+            except Exception as e:
+                if str(e) == 'token errato':
+                    self.log.write('[ERRORE] Token di accesso errato', 'g')
+                if str(e) == 'limite':
+                    self.log.write('[ERRORE] Rate Limit superato, attendere del tempo', 'g')
+                if str(e) == "name 'github' is not defined":
+                    self.log.write('[ERRORE] Impossibile collegarsi a Github', 'g')
+                else:
+                    self.log.write('[ERRORE] ' + str(e), 'g')
 
+
+    def __stats_to_db(self, tag, data, repo_id = 0):
+        with ContextBroker(self.token, self.db_file, self.log) as b:
+            args = (None, repo_id, tag, data)
+            b.stats_to_db(args)
+
+    """
+        OPERAZIONI DI GESTIONE FILE
+    """
     def close(self):
-        self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        self.broker.delete_db()
-        self.broker = None
+        try:
+            with ContextBroker(self.token, self.db_file, self.log) as b:
+                b.delete_db()
+        except Exception as e:
+            self.log.write('[ERRORE] problemi in chiusura file' + str(e), 'f+g')
 
     def backup(self, backup_file):
-        self.broker = Broker.Broker(self.token, self.db_file, self.log)
-        self.broker.backup(backup_file)
+        try:
+            with ContextBroker(self.token, self.db_file, self.log) as b:
+                b.backup(backup_file)
+        except Exception as e:
+            self.log.write('[ERRORE] problemi in salvataggio file' + str(e), 'f+g')
+
+
+"""
+    CONTEXT MANAGER BROKER PER IL MULTI THREADING
+"""
+class ContextBroker():
+    def __init__(self, token, db_file, log):
+        self.__token = token
+        self.__db = db_file
+        self.__log = log
+        self.broker = None
+
+    def __enter__(self):
+        self.broker = Broker.Broker(self.__token, self.__db, self.__log)
+        return self.broker
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.broker = None

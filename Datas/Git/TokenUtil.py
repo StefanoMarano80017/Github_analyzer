@@ -5,7 +5,6 @@ from github import Github
 
 # Questa classe ha il compito di gestire il rate limit di Github
 class Token:
-
     def __init__(self, token):
         # Tempo da attendere nel caso in cui le richieste superano il numero massimo
         self.waiting_time = 60

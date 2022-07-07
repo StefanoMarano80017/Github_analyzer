@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
-from Broker import DB_manager
-from Broker import Query_Txt
+from Util import Query_Txt
+from Datas.DB import DB_manager
 
 
 # Viene generata una classe astratta per facilitare la costruzioni di più operazioni CRUD diverse
@@ -25,7 +25,6 @@ class DAO_Repo(DAO_Astratto):
     # Con questo metodo viene implementato il create repo, ovvero, l'insert repo
     def set_data(self, args, query_id="insert_repo") -> None:
 
-        self.db.check_conn()
         query_tabella = Query_Txt.read_query("create_repo", 'DB')
         query_set = Query_Txt.read_query(query_id, 'DB')
 
