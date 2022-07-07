@@ -1,17 +1,18 @@
-from Unit_elaborazione.source_analyze import Cloc_Analize, Request_Code
 from Unit_elaborazione.AbstractElaborazione import AbstractElaborazione
+from Unit_elaborazione.source_analyze import Cloc_Analize, Request_Code
+
 
 # Classe che analizza il codice sorgente di tutti i file di una repository
 class source_analyzer(AbstractElaborazione):
 
-    def __init__(self, ElabName = 'source_analyzer'):
+    def __init__(self, ElabName='source_analyzer'):
         super().__init__(ElabName)
         self.cloc = None
 
-    def GetName(self)-> str:
+    def GetName(self) -> str:
         return self.name
 
-    #Interfaccia comune per le elaborazioni
+    # Interfaccia comune per le elaborazioni
     def DoElaborazione(self, RepoList: list) -> list:
         results = list()
         dens_results = list()
@@ -29,18 +30,17 @@ class source_analyzer(AbstractElaborazione):
         # return [self.summary.total_code_count, self.summary.total_documentation_count, self.summary.total_empty_count]
         return self.cloc.get_summary()
 
-
     # Metodo della classe che effettua la richiesta del singolo file della repository
     def __cloc_file(self, link: str, suffix: str):
         try:
-                req = Request_Code.extract_code(link)
-                self.cloc.count_file(req.get_content(), suffix)
+            req = Request_Code.extract_code(link)
+            self.cloc.count_file(req.get_content(), suffix)
         except Exception as e:
             raise '[ERRORE] Cloc' + str(e)
 
 
 class density_analyzer(source_analyzer):
-    def __init__(self, ElabName = 'density_analyzer'):
+    def __init__(self, ElabName='density_analyzer'):
         super().__init__(ElabName)
 
     def GetName(self) -> str:
@@ -62,4 +62,3 @@ class density_analyzer(source_analyzer):
                 dens_results.append(density)
 
         return dens_results
-

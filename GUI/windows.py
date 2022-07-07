@@ -1,7 +1,8 @@
+from abc import ABC
+
 import PySimpleGUI as sg
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from abc import ABC
 
 
 class abstract_window(ABC):
@@ -91,8 +92,8 @@ class graph_window(abstract_window):
     def __init__(self, tipo, title, descrizione, x, y):
         self.tipo = tipo
         self.layout = [[sg.Text(descrizione)],
-                  [sg.Canvas(key="-CANVAS-")],
-                  [sg.Button('Salva Graph')], ]
+                       [sg.Canvas(key="-CANVAS-")],
+                       [sg.Button('Salva Graph')], ]
 
         super(graph_window, self).__init__(layout=self.layout, title=title, finalize=True)
 
@@ -102,10 +103,10 @@ class graph_window(abstract_window):
         self.__draw_figure(self.win['-CANVAS-'].TKCanvas, self.fig)
 
     def __draw_figure(self, canvas, figure):
-            figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
-            figure_canvas_agg.draw()
-            figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-            return figure_canvas_agg
+        figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+        figure_canvas_agg.draw()
+        figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+        return figure_canvas_agg
 
     def Notifica(self):
         event, values = self.win.read(timeout=100)

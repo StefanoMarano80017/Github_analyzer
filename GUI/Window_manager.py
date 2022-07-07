@@ -1,10 +1,9 @@
-import PySimpleGUI as sg
 import concurrent.futures
 
+import PySimpleGUI as sg
 
 from GUI import windows
 from Util import logger, Query_Txt
-
 
 SIZE_DEFAULT = Query_Txt.read_query('SIZE_SEARCH', 'GUI')
 DB_DEFAULT = Query_Txt.read_query('DEFAULT_DB_FILE', 'GUI')
@@ -20,11 +19,9 @@ class Event_Processor():
         self.win_salva_graph = None
         self.controller = controller
 
-
         self.inputs = None
         self.RepoList = None
         self.Elab_results = dict()
-
 
     def __create_win_dati(self):
         return windows.Salva_window('Salva Dati')
@@ -37,10 +34,9 @@ class Event_Processor():
             thread = executor.submit(self.controller.DoElaborazione(ElabName, RepoList))
             self.Elab_results[ElabName] = thread.result()
 
-
     def event_loop(self):
         while True:
-            #eventi utente
+            # eventi utente
             if self.win_utente is not None:
                 opt = self.win_utente.Notifica()
                 self.inputs = self.win_utente.GetStato()
@@ -60,7 +56,7 @@ class Event_Processor():
                     case 'Densità':
                         self.__dens()
                     case 'Salva Dati':
-                        self.win_salva =self.__create_win_dati()
+                        self.win_salva = self.__create_win_dati()
                     case 'Documentazione/Modificabilità':
                         forks = list()
                         for repo in self.controller.Get_repos():
@@ -74,7 +70,7 @@ class Event_Processor():
                     case sg.WIN_CLOSED:
                         self.win_utente.close()
 
-            #eventi salva dati
+            # eventi salva dati
             if self.win_salva is not None:
                 match self.win_salva.Notifica():
                     case 'Submit_salva':
@@ -86,7 +82,7 @@ class Event_Processor():
                         self.win_salva.close()
                         self.win_salva = None
 
-            #eventi graph
+            # eventi graph
             if self.win_graph is not None:
                 for graph in self.win_graph:
                     match graph.Notifica():
@@ -112,8 +108,6 @@ class Event_Processor():
 
             self.inputs = None
 
-
-
     def __do_query(self):
         if self.inputs['token'] is not None and self.inputs['query'] is not None:
             self.log.write(
@@ -121,7 +115,8 @@ class Event_Processor():
                 'f+g')
             try:
                 win = self.win_utente.GetWin()
-                win.perform_long_operation(lambda: self.controller.get_git_data(self.inputs['query'], SIZE_DEFAULT),'-END KEY-')
+                win.perform_long_operation(lambda: self.controller.get_git_data(self.inputs['query'], SIZE_DEFAULT),
+                                           '-END KEY-')
                 self.RepoList = self.controller.Get_repo_list()
             except Exception as e:
                 print(e)
@@ -131,15 +126,13 @@ class Event_Processor():
             if self.inputs['query'] is None:
                 self.log.write('[ERRORE] MANCA LA QUERY', 'g')
 
-
     def __repos(self):
         try:
             for repo in self.controller.Get_repos():
                 print(repo)
             self.RepoList = self.controller.Get_repo_list()
         except Exception as e:
-                self.log.write('[ERRORE] ' + str(e), 'g')
-
+            self.log.write('[ERRORE] ' + str(e), 'g')
 
     def __cloc(self):
         self.log.write('------------------------------------INIZIO CALCOLO CLOC-----------------------------------',

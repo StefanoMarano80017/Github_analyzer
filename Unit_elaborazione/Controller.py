@@ -1,6 +1,7 @@
 from Datas import Broker
 from Unit_elaborazione.AbstractElaborazione import AbstractElaborazione
 
+
 class Singleton(type):
     _instances = {}
 
@@ -21,11 +22,11 @@ class Controller(metaclass=Singleton):
         self.log = logger
         self.ElabList = list()
 
-
     """
         OPERAZIONI DI GESTIONE ELABORAZIONI
     """
-    def set_param(self, token:str, db:str):
+
+    def set_param(self, token: str, db: str):
         self.token = token
         self.db_file = db
 
@@ -35,11 +36,12 @@ class Controller(metaclass=Singleton):
         else:
             raise 'Elab is None'
 
-    def DoElaborazione(self, ElabName, RepoList) -> list:
+    def DoElaborazione(self, ElabName, RepoList):
         if ElabName is not None:
             for Elab in self.ElabList:
                 if Elab.GetName() == ElabName:
-                    return Elab.DoElaborazione(RepoList)
+                    for res in Elab.DoElaborazione(RepoList):
+                        self.__stats_to_db(tag=ElabName, data=str(res))
             raise "ELab inesistente"
         else:
             raise "Elabname None"
@@ -47,6 +49,7 @@ class Controller(metaclass=Singleton):
     """
         OPERAZIONI DI GESTIONE DATI 
     """
+
     def Get_repo_list(self):
 
         RepoList = list()
@@ -60,7 +63,6 @@ class Controller(metaclass=Singleton):
             else:
                 return None
 
-
     def Get_repos(self):
         with ContextBroker(self.token, self.db_file, self.log) as b:
             return b.get_repo()
@@ -69,7 +71,7 @@ class Controller(metaclass=Singleton):
     def get_git_data(self, query_string: str, size_max):
         with ContextBroker(self.token, self.db_file, self.log) as b:
             try:
-                b.do_search(query_string, size_max)
+                b.do_git_search(query_string, size_max)
             except Exception as e:
                 if str(e) == 'token errato':
                     self.log.write('[ERRORE] Token di accesso errato', 'g')
@@ -80,8 +82,7 @@ class Controller(metaclass=Singleton):
                 else:
                     self.log.write('[ERRORE] ' + str(e), 'g')
 
-
-    def __stats_to_db(self, tag, data, repo_id = 0):
+    def __stats_to_db(self, tag, data, repo_id=0):
         with ContextBroker(self.token, self.db_file, self.log) as b:
             args = (None, repo_id, tag, data)
             b.stats_to_db(args)
@@ -89,6 +90,7 @@ class Controller(metaclass=Singleton):
     """
         OPERAZIONI DI GESTIONE FILE
     """
+
     def close(self):
         try:
             with ContextBroker(self.token, self.db_file, self.log) as b:
@@ -107,6 +109,8 @@ class Controller(metaclass=Singleton):
 """
     CONTEXT MANAGER BROKER PER IL MULTI THREADING
 """
+
+
 class ContextBroker():
     def __init__(self, token, db_file, log):
         self.__token = token

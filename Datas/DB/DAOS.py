@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
-from Util import Query_Txt
 from Datas.DB import DB_manager
+from Util import Query_Txt
 
 
 # Viene generata una classe astratta per facilitare la costruzioni di più operazioni CRUD diverse

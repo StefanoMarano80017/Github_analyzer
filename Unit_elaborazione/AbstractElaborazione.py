@@ -9,7 +9,7 @@ class AbstractElaborazione(ABC):
         else:
             raise "ELabName None"
 
-    def GetName(self)-> str:
+    def GetName(self) -> str:
         return self.name
 
     def DoElaborazione(self, RepoList: list) -> list:
