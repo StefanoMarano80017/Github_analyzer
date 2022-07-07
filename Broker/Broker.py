@@ -1,7 +1,8 @@
 import random
 
-from DBManager import DB_manager, DAOS
-from QueryGit import QueryGit
+from Broker import DAOS
+from Broker import DB_manager
+from Broker import QueryGit
 
 
 class Broker:

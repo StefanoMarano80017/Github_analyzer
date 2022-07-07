@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
-from DBManager import DB_manager
-from QueryGit import Query_Txt
+from Broker import DB_manager
+from Broker import Query_Txt
 
 
 # Viene generata una classe astratta per facilitare la costruzioni di più operazioni CRUD diverse

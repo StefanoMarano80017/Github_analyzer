@@ -3,7 +3,7 @@ from github import Github
 from github import RateLimitExceededException
 from github import Repository
 
-from QueryGit import TokenUtil
+from Broker import TokenUtil
 
 
 # Classe che effettua la query su Github

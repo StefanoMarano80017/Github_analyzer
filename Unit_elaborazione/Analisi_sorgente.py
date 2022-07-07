@@ -1,5 +1,5 @@
 from Unit_elaborazione import Cloc_Analize
-from RichiestaPagine import Request_Code
+from Unit_elaborazione import Request_Code
 
 
 # Classe che analizza il codice sorgente di tutti i file di una repository

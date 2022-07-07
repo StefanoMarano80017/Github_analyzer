@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from Controller import Controller
+from Unit_elaborazione import Controller
 from Util import logger
 
 SIZE_SEARCH = 3
