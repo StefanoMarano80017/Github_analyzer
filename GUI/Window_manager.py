@@ -1,221 +1,179 @@
-import time
-
 import PySimpleGUI as sg
-
-import matplotlib
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-from ..Unit_elaborazione import Controller
-from Util import logger
-
-SIZE_SEARCH = 3
-FIG_PATH = 'Util/'
-DEFAULT_DB_FILE = 'Util/db_default.db'
+import concurrent.futures
 
 
-def get_new_window(layout, title):
-    return sg.Window(title, layout, finalize=True, resizable=True, element_justification="right")
+from GUI import windows
+from Util import logger, Query_Txt
 
 
-def draw_figure(canvas, figure):
-    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
-    figure_canvas_agg.draw()
-    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-    return figure_canvas_agg
+SIZE_DEFAULT = Query_Txt.read_query('SIZE_SEARCH', 'GUI')
+DB_DEFAULT = Query_Txt.read_query('DEFAULT_DB_FILE', 'GUI')
 
 
-class Window_Manager:
-    def __init__(self):
+class Event_Processor():
+    def __init__(self, controller):
         sg.theme('LightGrey1')
-        self.layout = [[sg.Text('Github Rest analyser'), sg.Text(size=(15, 2), key='-LINE1-')],
-                       [sg.Multiline(size=(90, 20), auto_refresh=True, reroute_stdout=True, reroute_cprint=True,
-                                     write_only=True, key='-OUT-')],
-                       [sg.Text('Inserisci un Token Github per eseguire'), sg.Text(size=(20, 1), key='-LINE2-')],
-                       [sg.Input(key='-TOKEN-', size=(90, 1))],
-                       [sg.Text('Scrivi la tua query o carica un db compatibile'),
-                        sg.Text(size=(20, 1), key='-LINE3-')],
-                       [sg.Input(key='-IN-', size=(90, 1))],
-                       [sg.Text('Operazioni dati')],
-                       [sg.Button('Do Query'), sg.FileBrowse('Load Data', file_types=(("File DB", "*.db"),)),
-                        sg.Button('Salva Dati')],
-                       [sg.Text('Elaborazioni'), sg.Text(size=(20, 1), key='-LINE4-')],
-                       [sg.Button('Repos'), sg.Button('Cloc'), sg.Button('Densità')],
-                       [sg.Text('Grafici'), sg.Text(size=(20, 1), key='-LINE5-')],
-                       [sg.Button('Documentazione/Modificabilità'), sg.Button('Documentazione/Popolarità')], ]
-
-        self.titolo = 'Github REST'
-        self.window = sg.Window(self.titolo, self.layout, finalize=True)
-        self.db_file = DEFAULT_DB_FILE
-        self.query = None
-        self.token = None
-        self.controller = None
-        self.query = None
-        self.repos = None
-        self.cloc_results = None
-        self.dens_results = None
         self.log = logger.logger()
-        self.log.write(
-            '--------------------------------------INIZIO SESSIONE---------------------------------------------', 'f')
+        self.win_utente = windows.Utente_window()
+        self.win_salva = None
+        self.win_graph = list()
+        self.win_salva_graph = None
+        self.controller = controller
+
+
+        self.inputs = None
+        self.RepoList = None
+        self.Elab_results = dict()
+
+
+    def __create_win_dati(self):
+        return windows.Salva_window('Salva Dati')
+
+    def __create_win_graph(self, tipo, title, descrizione, x, y):
+        self.win_graph.append(windows.graph_window(tipo, title, descrizione, x, y))
+
+    def __long_function(self, ElabName, RepoList):
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            thread = executor.submit(self.controller.DoElaborazione(ElabName, RepoList))
+            self.Elab_results[ElabName] = thread.result()
+
 
     def event_loop(self):
-        win_graph1 = None
-        win_graph2 = None
-        win_salva = None
-        fig_1 = None
-        fig_2 = None
+        while True:
+            #eventi utente
+            if self.win_utente is not None:
+                opt = self.win_utente.Notifica()
+                self.inputs = self.win_utente.GetStato()
 
-        while True:  # Event Loop
-            windows, event, values = sg.read_all_windows()
-            self.controller = Controller.Controller(self.token, self.db_file, self.log)
+                if self.inputs['db'] is None:
+                    self.inputs['db'] = DB_DEFAULT
 
-            if event == sg.WIN_CLOSED:
-                if windows == win_graph1:
-                    win_graph1.close()
-                    win_graph1 = None
-                elif windows == win_graph2:
-                    win_graph2.close()
-                    win_graph2 = None
-                elif windows == win_salva:
-                    win_salva.close()
-                    win_salva = None
-                elif windows == self.window:
-                    # DA METTERE ALLA FINE DEL PROGETTO
-                    # if self.db_file == 'Util/db_prova.db':
-                    # self.controller.close()
-                    self.log.write(
-                        '--------------------------------------FINE SESSIONE---------------------------------------------',
-                        'f')
-                    windows.close()
-                    break
+                self.controller.set_param(self.inputs['token'], self.inputs['db'])
 
-            if windows == self.window:
-                if values['-TOKEN-']:
-                    self.token = values['-TOKEN-']
-                if values['-IN-']:
-                    self.query = values['-IN-']
-                if values['Load Data']:
-                    self.db_file = values['Load Data']
-                    self.repos = None
-                    self.log.write('[INFO] FILE CARICATO', 'f+g')
+                match opt:
+                    case 'Do Query':
+                        self.__do_query()
+                    case 'Repos':
+                        self.__repos()
+                    case 'Cloc':
+                        self.__cloc()
+                    case 'Densità':
+                        self.__dens()
+                    case 'Salva Dati':
+                        self.win_salva =self.__create_win_dati()
+                    case 'Documentazione/Modificabilità':
+                        forks = list()
+                        for repo in self.controller.Get_repos():
+                            forks.append(repo[3])
+                        self.__density_graph(forks)
+                    case 'Documentazione/Popolarità':
+                        stars = list()
+                        for repo in self.controller.Get_repos():
+                            stars.append(repo[2])
+                        self.__density_graph(stars)
+                    case sg.WIN_CLOSED:
+                        self.win_utente.close()
 
-            if event == 'Do Query':
-                self.__do_query()
-            elif event == 'Repos':
-                self.log.write(
-                    '--------------------------------------REPOS---------------------------------------------', 'f+g')
-                self.repos = self.controller.get_repo()
-                self.print_table_repo()
-            elif event == 'Cloc':
-                self.log.write(
-                    '------------------------------------------CALCOLO CLOC---------------------------------------',
-                    'f+g')
-                self.window.perform_long_operation(lambda: self.controller.repo_cloc(), '-CLOC KEY-')
-            elif event == 'Densità':
-                if self.cloc_results is not None:
-                    self.log.write(
-                        '------------------------------------------CALCOLO DENSITA DOC------------------------------------',
-                        'f+g')
-                    self.window.perform_long_operation(lambda: self.controller.cloc_density_graph(self.cloc_results),
-                                                       '-DENS KEY-')
-                else:
-                    self.log.write('[ERRORE] Effettuare prima il calcolo del Cloc', 'f+g')
+            #eventi salva dati
+            if self.win_salva is not None:
+                match self.win_salva.Notifica():
+                    case 'Submit_salva':
+                        backup = self.win_salva.GetStato()
+                        self.__salva_dati(backup['backup'])
+                        self.win_salva.close()
+                        self.win_salva = None
+                    case sg.WIN_CLOSED:
+                        self.win_salva.close()
+                        self.win_salva = None
 
-            if event == '-CLOC KEY-':
-                self.cloc_results = values['-CLOC KEY-']
-                self.log.write(
-                    '------------------------------------FINE CALCOLO CLOC-----------------------------------', 'f+g')
-            if event == '-DENS KEY-':
-                self.dens_results = values['-DENS KEY-']
-                self.log.write(
-                    '------------------------------------FINE CALCOLO DENSITA---------------------------------', 'f+g')
+            #eventi graph
+            if self.win_graph is not None:
+                for graph in self.win_graph:
+                    match graph.Notifica():
+                        case 'Salva Graph':
+                            self.win_salva_graph = self.__create_win_dati()
+                        case sg.WIN_CLOSED:
+                            graph.close()
 
-            if event == 'Documentazione/Modificabilità':
-                if self.dens_results is not None:
-                    forks = []
-                    for repo in self.cloc_results:
-                        forks.append(repo[2])
-                    win_graph1, fig_1 = self.__graph_window('Documentazione/Modificabilità',
-                                                            'Documentazione/Modificabilità',
-                                                            self.dens_results, forks)
-                else:
-                    self.log.write('[ERRORE] Effettuare prima il calcolo delle densità', 'f+g')
-            if event == 'Documentazione/Popolarità':
-                if self.dens_results is not None:
-                    stars = []
-                    for repo in self.cloc_results:
-                        stars.append(repo[1])
-                    win_graph2, fig_2 = self.__graph_window('Documentazione/Popolarità', 'Documentazione/Popolarità',
-                                                            self.dens_results, stars)
-                else:
-                    self.log.write('[ERRORE] Effettuare prima il calcolo delle densità', 'f+g')
+            if self.win_salva_graph is not None:
+                match self.win_salva_graph.Notifica():
+                    case 'Submit_salva':
+                        backup = self.win_salva.GetStato()
+                        if backup != ' ':
+                            fig = self.win_salva.GetFig()
+                            fig.savefig(backup)
+                        else:
+                            self.log.write('[ERRORE] path immagine grafico vuoto', 'g')
+                        self.win_salva_graph.close()
+                        self.win_salva_graph = None
+                    case sg.WIN_CLOSED:
+                        self.win_salva_graph.close()
+                        self.win_salva_graph = None
 
-            if event == 'Salva Dati':
-                win_salva = self.__salva__window()
-            if windows == win_salva:
-                if event == 'Submit_salva':
-                    backup = values['-IN SALVA-']
-                    if backup.find(".db") != -1:
-                        win_salva.close()
-                        self.__salva_dati(backup)
-                    else:
-                        print('[ERRORE] IL FILE DEVE AVERE ESTENSIONE .db')
+            self.inputs = None
 
-            if event == 'Salva Graph':
-                timestr = time.strftime("%Y%m%d-%H%M%S")
-                if windows == win_graph1:
-                    file_name = FIG_PATH + timestr + '_mod.png'
-                    fig_1.savefig(file_name)
-                    self.log.write('[INFO] Grafico modificabilità salvato', 'f+g')
-                if windows == win_graph2:
-                    file_name = FIG_PATH + timestr + '_pop.png'
-                    fig_2.savefig(file_name)
-                    self.log.write('[INFO] Grafico popolarità salvato', 'f+g')
 
-    def __salva_dati(self, backup_file):
-        self.repos = self.controller.get_repo()
-        if self.repos is not None:
-            self.controller.backup(backup_file)
-            self.db_file = backup_file
-            self.controller = Controller.Controller(self.token, self.db_file, self.log)
-            self.log.write('[INFO] SALVATAGGIO ESEGUITO', 'f+g')
-
-    def __salva__window(self):
-        layout = [[sg.Input(key='-IN SALVA-'), sg.Button('Submit_salva')]]
-        return get_new_window(layout, 'Salva file')
 
     def __do_query(self):
-        if self.query is not None and self.token is not None:
+        if self.inputs['token'] is not None and self.inputs['query'] is not None:
             self.log.write(
                 '---------------------------------------------ESEGUO QUERY GIT--------------------------',
                 'f+g')
-            self.window.perform_long_operation(lambda: self.controller.get_git_data(self.query, SIZE_SEARCH),
-                                               '-END KEY-')
-            self.repos = self.controller.get_repo()
-        if self.token is None:
-            self.log.write('[ERRORE] MANCA IL TOKEN', 'g')
-        if self.query is None:
-            self.log.write('[ERRORE] MANCA LA QUERY', 'g')
+            try:
+                win = self.win_utente.GetWin()
+                win.perform_long_operation(lambda: self.controller.get_git_data(self.inputs['query'], SIZE_DEFAULT),'-END KEY-')
+                self.RepoList = self.controller.Get_repo_list()
+            except Exception as e:
+                print(e)
+        else:
+            if self.inputs['token'] is None:
+                self.log.write('[ERRORE] MANCA IL TOKEN', 'g')
+            if self.inputs['query'] is None:
+                self.log.write('[ERRORE] MANCA LA QUERY', 'g')
 
-    def __graph_window(self, title, descrizione, x, y):
-        layout = [[sg.Text(descrizione)],
-                  [sg.Canvas(key="-CANVAS-")],
-                  [sg.Button('Salva Graph')], ]
 
-        win_graph = get_new_window(layout, title)
-
-        fig = matplotlib.figure.Figure(figsize=(5, 4), dpi=100)
-        fig.add_subplot(111).plot(x, y, 'o')
-
-        matplotlib.use("TkAgg")
-        draw_figure(win_graph['-CANVAS-'].TKCanvas, fig)
-
-        return win_graph, fig
-
-    def print_table_repo(self):
+    def __repos(self):
         try:
-            for repo in self.controller.get_repo():
-                string = "ID: " + str(repo[0]) + " Full Name: " + str(repo[1]) + " Stars: " + str(
-                    repo[2]) + " Forks: " + str(repo[3])
-                self.log.write(string, 'f+g')
+            for repo in self.controller.Get_repos():
+                print(repo)
+            self.RepoList = self.controller.Get_repo_list()
         except Exception as e:
-            self.log.write('[ERRORE] ' + str(e), 'g')
+                self.log.write('[ERRORE] ' + str(e), 'g')
+
+
+    def __cloc(self):
+        self.log.write('------------------------------------INIZIO CALCOLO CLOC-----------------------------------',
+                       'f+g')
+        if self.RepoList is None:
+            self.RepoList = self.controller.Get_repo_list()
+        self.__long_function('source_analyzer', self.RepoList)
+        self.log.write('------------------------------------FINE CALCOLO CLOC-----------------------------------',
+                       'f+g')
+        self.__print_elab('source_analyzer')
+
+    def __dens(self):
+        self.log.write('------------------------------------INIZIO CALCOLO DENS-----------------------------------',
+                       'f+g')
+        if self.RepoList is None:
+            self.RepoList = self.controller.Get_repo_list()
+        self.__long_function('density_analyzer', self.RepoList)
+        self.log.write('------------------------------------FINE CALCOLO DENS-----------------------------------',
+                       'f+g')
+        self.__print_elab('density_analyzer')
+
+    def __print_elab(self, elab_name):
+        for res in self.Elab_results[elab_name]:
+            print(res)
+
+    def __density_graph(self, y):
+        if self.inputs['elabs']['-DENS KEY-'] is not None:
+
+            x = self.inputs['-DENS KEY-']
+            self.__create_win_graph('mod/doc', 'Documentazione/Modificabilità', ' ', x, y)
+        else:
+            self.log.write('[ERRORE] eseguire un elaborazione di densità', 'g')
+
+    def __salva_dati(self, backup_file):
+        self.controller.backup(backup_file)
+        self.controller.set_param(self.inputs['token'], backup_file)
+        self.log.write('[INFO] SALVATAGGIO ESEGUITO', 'f+g')
