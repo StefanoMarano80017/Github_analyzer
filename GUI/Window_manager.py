@@ -57,12 +57,12 @@ class Event_Processor():
                         forks = list()
                         for repo in self.controller.Get_repos():
                             forks.append(repo[3])
-                        self.__density_graph(forks)
+                        self.__density_graph(forks, 'doc/mod', 'Grafico Documentazione/Modificabilità', ' ')
                     case 'Documentazione/Popolarità':
                         stars = list()
                         for repo in self.controller.Get_repos():
                             stars.append(repo[2])
-                        self.__density_graph(stars)
+                        self.__density_graph(stars, 'doc/pop', 'Grafico Documentazione/Popolarità', ' ')
                     case '-CLOC KEY-':
                         self.Elab_results['source_analyzer'] = self.controller.Get_stats('source_analyzer')
                         self.log.write('[INFO] Elaborazione terminata', 'f+g')
@@ -164,13 +164,13 @@ class Event_Processor():
             else:
                 self.log.write('[ERRORE] Elaborazione nulla', 'f+g')
 
-    def __density_graph(self, y):
+    def __density_graph(self, y, tipo, titolo, descrizione):
         if 'density_analyzer' not in self.Elab_results:
             self.Elab_results['density_analyzer'] = self.controller.Get_stats('density_analyzer')
 
         if self.Elab_results['density_analyzer'] is not None:
             x = self.Elab_results['density_analyzer']
-            self.__create_win_graph('mod/doc', 'Documentazione/Modificabilità', ' ', x, y)
+            self.__create_win_graph(tipo, titolo, descrizione, x, y)
         else:
             self.log.write('[ERRORE] eseguire un elaborazione di densità', 'g')
 
