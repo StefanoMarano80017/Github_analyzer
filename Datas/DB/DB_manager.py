@@ -7,55 +7,49 @@ class DB:
     def __init__(self, db_file):
         self.db_file = db_file
         self.backup_name = None
-        self.conn = None
-        self.conn_alive = False
+        self.__conn = None
 
-    # Viene creata la connessione
-    def create_connection(self):
-        try:
-            self.conn = sqlite3.connect(self.db_file)
-            self.conn_alive = True
-        except sqlite3.Error as err:
-            self.conn_alive = False
-            raise err
 
-    # Viene Chiusa la connessione
-    def close_connection(self):
-        self.conn_alive = False
-        self.conn.close()
-
-    # Controllo stato Connessione
     def check_conn(self):
-        if not self.conn_alive:
-            return self.create_connection()
-        else:
-            return self.conn
+        try:
+            self.__conn.cursor()
+            return self.__conn
+        except Exception as ex:
+            return self.__create_connection()
+
+
+    def __create_connection(self):
+        try:
+            self.__conn = sqlite3.connect(self.db_file)
+            return self.__conn
+        except sqlite3.Error as err:
+            raise Exception('[ERRORE] db: ' + str(err))
+
 
     # Esecuzione query sul db con o senza parametri
     def do_query(self, query: str, lista_parametri=None):
         c = None
         try:
-            with self.check_conn() as con:
-                c = con.cursor()
+            with self.check_conn() as conn:
+                c = conn.cursor()
                 if lista_parametri is None:
                     c.execute(query)
                 else:
                     c.execute(query, lista_parametri)
         except sqlite3.Error as err:
             raise err
-        return c
+        finally:
+            return c
 
     # Viene generata una copia in locale nel caso l'utente voglia salvare il db
     def backup_on_file(self, backup_name: str):
-        db_con = sqlite3.connect(self.db_file)
-        back_con = sqlite3.connect(backup_name)
-        self.backup_name = backup_name
         try:
-            with db_con as db:
-                with back_con as backup:
-                    db.backup(backup, pages=0)
+            backup_conn = sqlite3.connect(backup_name)
+            db_conn = self.check_conn()
+            db_conn.backup(backup_conn, pages=0)
         except sqlite3.Error:
             raise "Errore di backup"
 
     def delete_db(self):
         os.remove(self.db_file)
+

@@ -15,7 +15,6 @@ class source_analyzer(AbstractElaborazione):
     # Interfaccia comune per le elaborazioni
     def DoElaborazione(self, RepoList: list) -> list:
         results = list()
-        dens_results = list()
         for repo in RepoList:
             self.cloc = Cloc_Analize.C_Analysis(repo[0][0])
             results.append(self.__cloc_files(repo[1]))

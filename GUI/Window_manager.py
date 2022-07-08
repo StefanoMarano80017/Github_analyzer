@@ -5,7 +5,7 @@ import PySimpleGUI as sg
 from GUI import windows
 from Util import logger, Query_Txt
 
-SIZE_DEFAULT = Query_Txt.read_query('SIZE_SEARCH', 'GUI')
+SIZE_DEFAULT = int(Query_Txt.read_query('SIZE_SEARCH', 'GUI'))
 DB_DEFAULT = Query_Txt.read_query('DEFAULT_DB_FILE', 'GUI')
 
 
@@ -21,7 +21,7 @@ class Event_Processor():
 
         self.inputs = None
         self.RepoList = None
-        self.Elab_results = dict()
+        self.Elab_results = {}
 
     def __create_win_dati(self):
         return windows.Salva_window('Salva Dati')
@@ -29,10 +29,6 @@ class Event_Processor():
     def __create_win_graph(self, tipo, title, descrizione, x, y):
         self.win_graph.append(windows.graph_window(tipo, title, descrizione, x, y))
 
-    def __long_function(self, ElabName, RepoList):
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            thread = executor.submit(self.controller.DoElaborazione(ElabName, RepoList))
-            self.Elab_results[ElabName] = thread.result()
 
     def event_loop(self):
         while True:
@@ -52,9 +48,9 @@ class Event_Processor():
                     case 'Repos':
                         self.__repos()
                     case 'Cloc':
-                        self.__cloc()
+                        self.__elabs('source_analyzer', '-CLOC KEY-')
                     case 'Densità':
-                        self.__dens()
+                        self.__elabs('density_analyzer', '-DENS KEY-')
                     case 'Salva Dati':
                         self.win_salva = self.__create_win_dati()
                     case 'Documentazione/Modificabilità':
@@ -67,6 +63,16 @@ class Event_Processor():
                         for repo in self.controller.Get_repos():
                             stars.append(repo[2])
                         self.__density_graph(stars)
+                    case '-CLOC KEY-':
+                        self.Elab_results['source_analyzer'] = self.controller.Get_stats('source_analyzer')
+                        self.log.write('[INFO] Elaborazione terminata', 'f+g')
+                        self.__print_elab('source_analyzer')
+
+                    case '-DENS KEY-':
+                        self.Elab_results['density_analyzer'] = self.controller.Get_stats('density_analyzer')
+                        self.log.write('[INFO] Elaborazione terminata', 'f+g')
+                        self.__print_elab('density_analyzer')
+
                     case sg.WIN_CLOSED:
                         self.win_utente.close()
 
@@ -111,8 +117,7 @@ class Event_Processor():
     def __do_query(self):
         if self.inputs['token'] is not None and self.inputs['query'] is not None:
             self.log.write(
-                '---------------------------------------------ESEGUO QUERY GIT--------------------------',
-                'f+g')
+                '[INFO] Eseguo query: ' + self.inputs['query'], 'f+g')
             try:
                 win = self.win_utente.GetWin()
                 win.perform_long_operation(lambda: self.controller.get_git_data(self.inputs['query'], SIZE_DEFAULT),
@@ -128,43 +133,47 @@ class Event_Processor():
 
     def __repos(self):
         try:
-            for repo in self.controller.Get_repos():
-                print(repo)
             self.RepoList = self.controller.Get_repo_list()
+            if self.RepoList is not None:
+                self.log.write('[INFO] Repos in: ' + self.inputs['db'], 'g')
+                for repo in self.RepoList:
+                    self.log.write(repo[0], 'g')
+            else:
+                self.log.write('[ERRORE] Il file non contiene repository', 'g')
         except Exception as e:
             self.log.write('[ERRORE] ' + str(e), 'g')
 
-    def __cloc(self):
-        self.log.write('------------------------------------INIZIO CALCOLO CLOC-----------------------------------',
-                       'f+g')
+    def __elabs(self, ElabName, key):
+        self.log.write('[INFO] Inizio elab: ' + ElabName, 'f+g')
         if self.RepoList is None:
             self.RepoList = self.controller.Get_repo_list()
-        self.__long_function('source_analyzer', self.RepoList)
-        self.log.write('------------------------------------FINE CALCOLO CLOC-----------------------------------',
-                       'f+g')
-        self.__print_elab('source_analyzer')
 
-    def __dens(self):
-        self.log.write('------------------------------------INIZIO CALCOLO DENS-----------------------------------',
-                       'f+g')
-        if self.RepoList is None:
-            self.RepoList = self.controller.Get_repo_list()
-        self.__long_function('density_analyzer', self.RepoList)
-        self.log.write('------------------------------------FINE CALCOLO DENS-----------------------------------',
-                       'f+g')
-        self.__print_elab('density_analyzer')
+        try:
+            win = self.win_utente.GetWin()
+            win.perform_long_operation(lambda: self.controller.DoElaborazione(ElabName, self.RepoList), key)
+        except Exception as e:
+            self.log.write('[ERRORE] ' + str(e),'f+g')
 
     def __print_elab(self, elab_name):
-        for res in self.Elab_results[elab_name]:
-            print(res)
+        if elab_name not in self.Elab_results:
+            self.log.write('[ERRORE] errore elaborazione', 'g')
+        else:
+            if self.Elab_results[elab_name] is not None:
+                for res in self.Elab_results[elab_name]:
+                    self.log.write(res, 'f+g')
+            else:
+                self.log.write('[ERRORE] Elaborazione nulla', 'f+g')
 
     def __density_graph(self, y):
-        if self.inputs['elabs']['-DENS KEY-'] is not None:
+        if 'density_analyzer' not in self.Elab_results:
+            self.Elab_results['density_analyzer'] = self.controller.Get_stats('density_analyzer')
 
-            x = self.inputs['-DENS KEY-']
+        if self.Elab_results['density_analyzer'] is not None:
+            x = self.Elab_results['density_analyzer']
             self.__create_win_graph('mod/doc', 'Documentazione/Modificabilità', ' ', x, y)
         else:
             self.log.write('[ERRORE] eseguire un elaborazione di densità', 'g')
+
 
     def __salva_dati(self, backup_file):
         self.controller.backup(backup_file)

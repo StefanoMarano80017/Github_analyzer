@@ -27,18 +27,15 @@ class DAO_Repo(DAO_Astratto):
 
         query_tabella = Query_Txt.read_query("create_repo", 'DB')
         query_set = Query_Txt.read_query(query_id, 'DB')
-
         try:
             self.db.do_query(query_tabella)
             self.db.do_query(query_set, args)
         except Exception as e:
             raise e
-        finally:
-            self.db.close_connection()
+
 
     # Con questo metodo viene implementato il read repo, ovvero, l'operazione di select repo
     def get_data(self, query_id="select_repo", args=None):
-        self.db.check_conn()
         query_txt = Query_Txt.read_query(query_id, 'DB')
         repos = []
         try:
@@ -60,7 +57,6 @@ class DAO_link(DAO_Astratto):
 
     # Con questo metodo viene implementato il read link, ovvero, l'operazione di select link
     def get_data(self, query_id='select_link', args=None) -> list:
-        self.db.check_conn()
         query_txt = Query_Txt.read_query(query_id, 'DB')
         links = []
         try:
@@ -76,17 +72,14 @@ class DAO_link(DAO_Astratto):
 
     # Con questo metodo viene implementato il create link, ovvero, l'insert link
     def set_data(self, args, query_id="insert_link"):
-        self.db.check_conn()
         query_tabella = Query_Txt.read_query("create_links", 'DB')
         query_set = Query_Txt.read_query(query_id, 'DB')
-
         try:
             self.db.do_query(query_tabella)
             self.db.do_query(query_set, args)
         except Exception as e:
             raise e
-        finally:
-            self.db.close_connection()
+
 
 
 class DAO_stats(DAO_Astratto):
@@ -95,7 +88,6 @@ class DAO_stats(DAO_Astratto):
         self.db = DB_manager.DB(self.db_file)
 
     def set_data(self, args, query_id='insert_stats'):
-        self.db.check_conn()
         query_tabella = Query_Txt.read_query("create_stats", 'DB')
         query_set = Query_Txt.read_query(query_id, 'DB')
 
@@ -104,11 +96,9 @@ class DAO_stats(DAO_Astratto):
             self.db.do_query(query_set, args)
         except Exception as e:
             raise e
-        finally:
-            self.db.close_connection()
+
 
     def get_data(self, query_id='select_stats', args=None):
-        self.db.check_conn()
         query_txt = Query_Txt.read_query(query_id, 'DB')
         links = []
         try:
