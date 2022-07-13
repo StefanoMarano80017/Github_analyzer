@@ -40,6 +40,7 @@ class Controller(metaclass=Singleton):
             for Elab in self.__ElabList:
                 if Elab.GetName() == ElabName:
                     res = Elab.DoElaborazione(RepoList)
+                    self.__log.write('[INFO] Salvataggio elab', 'g')
                     self.__stats_to_db(res=res, tag=ElabName)
                     return res
             raise Exception('ELaborazione Inesistente')
@@ -70,6 +71,7 @@ class Controller(metaclass=Singleton):
     def get_git_data(self, query_string: str, size_max):
         with ContextBroker(self.__token, self.__db_file, self.__log) as b:
             try:
+                query_string = query_string + 'stars:>1 forks:>1'
                 b.do_git_search(query_string, size_max)
             except Exception as e:
                 if str(e) == 'token errato':
@@ -118,9 +120,11 @@ class ContextBroker():
         self.__token = token
         self.__db = db_file
         self.__log = log
+        self.__broker = None
 
     def __enter__(self):
-        return Broker.Broker(self.__token, self.__db, self.__log)
+        self.__broker = Broker.Broker(self.__token, self.__db, self.__log)
+        return self.__broker
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        return None
+        self.__broker = None

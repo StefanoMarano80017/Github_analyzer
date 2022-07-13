@@ -1,5 +1,3 @@
-import concurrent.futures
-
 import PySimpleGUI as sg
 
 from GUI import windows
@@ -26,8 +24,8 @@ class Event_Processor():
     def __create_win_dati(self):
         return windows.Salva_window('Salva Dati')
 
-    def __create_win_graph(self, tipo, title, descrizione, x, y):
-        self.win_graph.append(windows.graph_window(tipo, title, descrizione, x, y))
+    def __create_win_graph(self, tipo, title, desc_x, desc_y, x, y):
+        self.win_graph.append(windows.graph_window(tipo, title, desc_x, desc_y, x, y))
 
 
     def event_loop(self):
@@ -57,12 +55,16 @@ class Event_Processor():
                         forks = list()
                         for repo in self.controller.Get_repos():
                             forks.append(repo[3])
-                        self.__density_graph(forks, 'doc/mod', 'Grafico Documentazione/Modificabilità', ' ')
+                        self.__density_graph(forks, 'doc/mod', 'Grafico Documentazione/Modificabilità', 'forks')
                     case 'Documentazione/Popolarità':
                         stars = list()
                         for repo in self.controller.Get_repos():
                             stars.append(repo[2])
-                        self.__density_graph(stars, 'doc/pop', 'Grafico Documentazione/Popolarità', ' ')
+                        self.__density_graph(stars, 'doc/pop', 'Grafico Documentazione/Popolarità', 'stars')
+                    case '-END KEY-':
+                        self.log.write('[INFO] Query terminata', 'f+g')
+                        self.RepoList = self.controller.Get_repo_list()
+                        self.__repos()
                     case '-CLOC KEY-':
                         self.Elab_results['source_analyzer'] = self.controller.Get_stats('source_analyzer')
                         self.log.write('[INFO] Elaborazione terminata', 'f+g')
@@ -119,12 +121,15 @@ class Event_Processor():
             self.log.write(
                 '[INFO] Eseguo query: ' + self.inputs['query'], 'f+g')
             try:
+                print(self.inputs['query'])
+                print(SIZE_DEFAULT)
+
                 win = self.win_utente.GetWin()
                 win.perform_long_operation(lambda: self.controller.get_git_data(self.inputs['query'], SIZE_DEFAULT),
                                            '-END KEY-')
-                self.RepoList = self.controller.Get_repo_list()
+
             except Exception as e:
-                print(e)
+                self.log.write('[ERRORE] ' + str(e), 'g')
         else:
             if self.inputs['token'] is None:
                 self.log.write('[ERRORE] MANCA IL TOKEN', 'g')
@@ -164,16 +169,15 @@ class Event_Processor():
             else:
                 self.log.write('[ERRORE] Elaborazione nulla', 'f+g')
 
-    def __density_graph(self, y, tipo, titolo, descrizione):
+    def __density_graph(self, y, tipo, titolo, desc_y):
         if 'density_analyzer' not in self.Elab_results:
             self.Elab_results['density_analyzer'] = self.controller.Get_stats('density_analyzer')
 
         if self.Elab_results['density_analyzer'] is not None:
             x = self.Elab_results['density_analyzer']
-            self.__create_win_graph(tipo, titolo, descrizione, x, y)
+            self.__create_win_graph(tipo, titolo, 'Densità Doc', desc_y, x, y)
         else:
             self.log.write('[ERRORE] eseguire un elaborazione di densità', 'g')
-
 
     def __salva_dati(self, backup_file):
         self.controller.backup(backup_file)

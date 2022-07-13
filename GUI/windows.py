@@ -1,8 +1,8 @@
 from abc import ABC
 
 import PySimpleGUI as sg
-import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib import pyplot as plt
 
 
 class abstract_window(ABC):
@@ -51,7 +51,7 @@ class Utente_window(abstract_window):
         }
 
     def Notifica(self):
-        event, values = self.win.read(timeout=100)
+        event, values = self.win.read()
 
         if values['-TOKEN-']:
             self.stato['token'] = values['-TOKEN-']
@@ -80,7 +80,8 @@ class Salva_window(abstract_window):
     def Notifica(self):
         event, values = self.win.read(timeout=100)
         if values['-IN SALVA-']:
-            self.stato['backup'] = values['-IN SALVA-']
+            if values['-IN SALVA-'] != ' ' and values['-IN SALVA-'] is not None:
+                self.stato['backup'] = values['-IN SALVA-']
 
         return event
 
@@ -89,17 +90,32 @@ class Salva_window(abstract_window):
 
 
 class graph_window(abstract_window):
-    def __init__(self, tipo, title, descrizione, x, y):
+    def __init__(self, tipo, title, desc_x, desc_y, x, y):
         self.tipo = tipo
-        self.layout = [[sg.Text(descrizione)],
-                       [sg.Canvas(key="-CANVAS-")],
+        self.layout = [[sg.Canvas(key="-CANVAS-")],
                        [sg.Button('Salva Graph')], ]
 
         super(graph_window, self).__init__(layout=self.layout, title=title, finalize=True)
 
-        self.fig = matplotlib.figure.Figure(figsize=(5, 4), dpi=100)
-        self.fig.add_subplot(111).plot(x, y, 'o')
-        matplotlib.use("TkAgg")
+        num_list_x = list()
+        num_list_y = list()
+
+        for i,j in zip(x,y):
+            num_list_x.append(float(i))
+            num_list_y.append(float(j))
+
+        num_list_x.sort()
+        num_list_y.sort()
+
+        # make fig and plot
+        plt.figure(1, figsize=(7, 6), dpi=100)
+
+        plt.plot(num_list_x, num_list_y, 'o', color='tab:red')
+        # Instead of plt.show
+        plt.xlabel(desc_x)
+        plt.ylabel(desc_y)
+        self.fig = plt.gcf()
+        self.fig.autofmt_xdate()
         self.__draw_figure(self.win['-CANVAS-'].TKCanvas, self.fig)
 
     def __draw_figure(self, canvas, figure):

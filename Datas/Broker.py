@@ -31,7 +31,7 @@ class Broker:
     def __select_repo(self, query_string: str, size_max):
         # eseguo query su git con un limite al numero di repository
         count = self.__git_repo.count_query(query_string)
-        self.log.write('[INFO] Ricerca git in corso', 'g')
+        self.__log.write('[INFO] Ricerca git in corso', 'g')
         if count > size_max:
             repos = self.__git_repo.do_query_txt(query_string)
             return random.sample(repos, size_max)
