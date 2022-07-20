@@ -36,7 +36,7 @@ Matplotlib;
 Questo primo metodo risulta essere molto macchinoso, per questo motivo è stato implementato anche un secondo metodo.
 Per il secondo metodo si è fatto uso del concetto di pip. Grazie all'uso di questa funzionalità si rende l'intallazione più semplice per l'utente
 
-Con la prima istruzione si crea l'ambiente virtuale con tutte le dipendenze installate sul proprio personal computer
+Con la prima istruzione si installa con tutte le dipendenze sul proprio pc
 
 ```js
 pip install -i https://test.pypi.org/simple/github-analyzer
