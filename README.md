@@ -44,4 +44,4 @@ pip install -i https://test.pypi.org/simple/github-analyzer
 Infine l'istruzione seguente avvia effettivamente il programma
 
 ```js
-Python -m GitHub_analyzer
+Python -m gitHub_analyzer
