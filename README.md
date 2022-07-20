@@ -14,34 +14,10 @@ quindi viene posta molta importanza nella modificabilità e
 modularità in modo da poter introdurre facilmente nuove funzionalità d'analisi nelle release successive del software.
 
 # Installazione
-Per quanto riguarda l'installazione è possibile procedere in due modi:
 
-Il primo modo consiste nello scaricare manualemnte le repository e creare un ambiente virtuale con le seguenti librerie:
-
-PyGithub;	
-
-Requests;
-
-OS;
-
-PyGount;
-
-Tempfile;
-
-PySimpleGUI;
-
-Matplotlib;
-
-
-Questo primo metodo risulta essere molto macchinoso, per questo motivo è stato implementato anche un secondo metodo.
-Per il secondo metodo si è fatto uso del concetto di pip. Grazie all'uso di questa funzionalità si rende l'intallazione più semplice per l'utente
-
-Con la prima istruzione si installa con tutte le dipendenze sul proprio pc
-
+Per installare tutte le dipendenze:
 ```js
-pip install -i https://test.pypi.org/simple/github-analyzer
+pip install -r requirements
 ```
-Infine l'istruzione seguente avvia effettivamente il programma
 
-```js
-Python -m gitHub_analyzer
+Eseguire il file __main__.py per avviare il programma. 
